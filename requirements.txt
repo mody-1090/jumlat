@@ -53,3 +53,8 @@ wheel==0.45.1
 WTForms==3.2.1
 zopfli==0.2.3.post1
 gunicorn
+flask_mail
+boto3
+python-dotenv
+Flask-Caching
+redis
