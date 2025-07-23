@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تنبيه من جُملة</title>
+</head>
+<body style="font-family:Tahoma;">
+  <h2>مرحبًا {{ user.factory.name if user.role == 'factory' else user.username }}،</h2>
+  <p>{{ message }}</p>
+  <hr>
+  <p>فريق جُملة</p>
+</body>
+</html>

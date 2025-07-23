@@ -1,0 +1,64 @@
+{% extends "dashboard_admin/base.html" %}
+{% block admin_content %}
+<h2 class="mb-4">💳 مراجعة إثباتات الدفع</h2>
+
+{% if vouchers %}
+  <table class="table table-bordered table-hover">
+    <thead class="table-light">
+      <tr class="text-center">
+        <th>الرمز</th>
+        <th>المنتج</th>
+        <th>الكمية</th>
+        <th>المصنع</th>
+        <th>اسم الحساب البنكي المحوّل منه</th>
+        <th>رابط الإثبات (اختياري)</th>
+        <th>الإجراء</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vouchers %}
+      <tr class="text-center">
+        <td>{{ v.code }}</td>
+        <td>{{ v.product }}</td>
+        <td>{{ v.quantity }}</td>
+        <td>{{ v.factory.name }}</td>
+        <td>
+          {% if v.payment_account_name %}
+            {{ v.payment_account_name }}
+          {% else %}
+            <span class="text-muted">لم يتم الإدخال</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if v.payment_proof_url %}
+            <a href="{{ v.payment_proof_url }}" target="_blank">فتح الرابط</a>
+          {% else %}
+            <span class="text-muted">غير متوفر</span>
+          {% endif %}
+        </td>
+        <td>
+          <!-- ✔ اعتماد -->
+          <form method="post" action="{{ url_for('admin.voucher_payment_review') }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="voucher_id" value="{{ v.id }}">
+            <input type="hidden" name="action" value="approve">
+            <button class="btn btn-success btn-sm">✔ اعتماد</button>
+          </form>
+
+          <!-- ✖ رفض -->
+          <form method="post" action="{{ url_for('admin.voucher_payment_review') }}" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="voucher_id" value="{{ v.id }}">
+            <input type="hidden" name="action" value="reject">
+            <input type="text" name="note" placeholder="سبب الرفض" class="form-control form-control-sm mt-1" required>
+            <button class="btn btn-danger btn-sm mt-1">✖ رفض</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="alert alert-info">لا توجد إثباتات دفع حالياً للمراجعة.</div>
+{% endif %}
+{% endblock %}

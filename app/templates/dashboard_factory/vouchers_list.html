@@ -1,0 +1,96 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<h2 class="mb-4">📦 سندات المصنع (مجمَّعة حسب المنتج)</h2>
+
+{% if vouchers %}
+  {# المتغيّر idx لإعطاء معرف فريد لكل مجموعة #}
+  {% set ns = namespace(idx=0) %}
+
+  <div class="table-responsive shadow rounded-3 overflow-hidden">
+    <table class="table table-bordered align-middle text-center mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:1%"></th>
+          <th>الرمز</th>
+          <th>الكمية</th>
+          <th>الحالة</th>
+          <th>ملاحظات الإدارة</th>
+        </tr>
+      </thead>
+
+      <tbody class="table-group-divider">
+      {% for product, items in vouchers|groupby('product') %}
+        {% set ns.idx = ns.idx + 1 %}
+        {% set gid = 'g' ~ ns.idx %}
+
+        {# سطر عنوان المنتج #}
+        <tr class="bg-primary bg-opacity-10 fw-bold group-row" data-gid="{{ gid }}"
+            style="cursor:pointer">
+          <td>
+            <button type="button"
+                    class="btn btn-sm btn-outline-primary toggle-btn"
+                    data-gid="{{ gid }}">▼</button>
+          </td>
+          <td class="text-start" colspan="4">
+            {{ product }}
+            <span class="badge bg-primary ms-2">{{ items|length }} سند</span>
+            <small class="text-muted ms-3">
+              إجمالي الكمية: {{ items|map(attribute='quantity')|sum }}
+            </small>
+          </td>
+        </tr>
+
+        {# السطور التفصيلية مخفيّة افتراضيًا #}
+        {% for v in items %}
+        <tr class="detail-row d-none" data-gid="{{ gid }}">
+          <td></td>
+          <td class="text-break">{{ v.code }}</td>
+          <td>{{ v.quantity }}</td>
+          <td>
+            {% set st = v.status %}
+            {% if   st == 'pending_admin_review' %}
+              <span class="text-secondary">قيد المراجعة</span>
+            {% elif st == 'awaiting_payment' %}
+              <span class="text-warning">دفع عمولة</span>
+            {% elif st == 'payment_under_review' %}
+              <span class="text-info">مراجعة دفع</span>
+            {% elif st == 'payment_rejected' %}
+              <span class="text-danger">مرفوض</span>
+            {% elif st == 'approved_for_market' %}
+              <span class="text-primary">جاهز للسوق</span>
+            {% elif st == 'activated' %}
+              <span class="text-success">مفعل</span>
+            {% elif st == 'used' %}
+              <span class="text-success fw-bold">مستخدم</span>
+            {% else %}
+              <span class="text-muted">{{ st }}</span>
+            {% endif %}
+          </td>
+          <td class="text-start">{{ v.admin_note or '—' }}</td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // تبديل إظهار/إخفاء تفاصيل السندات
+    document.querySelectorAll('.group-row, .toggle-btn').forEach(el => {
+      el.addEventListener('click', e => {
+        const gid = el.dataset.gid || el.getAttribute('data-gid');
+        const rows = document.querySelectorAll(`.detail-row[data-gid="${gid}"]`);
+        rows.forEach(r => r.classList.toggle('d-none'));
+
+        const btn  = document.querySelector(`.toggle-btn[data-gid="${gid}"]`);
+        if (btn) btn.textContent = rows[0].classList.contains('d-none') ? '▼' : '▲';
+      });
+    });
+  </script>
+
+{% else %}
+  <div class="alert alert-info">لا توجد سندات بعد.</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<!-- ✅ معلومات الدفع الثابتة -->
+<div class="card shadow-sm p-4 mb-4">
+  <h5 class="mb-3">معلومات الدفع:</h5>
+  <ul>
+    <li><strong>يجب دفع مبلغ العمولة إلى منصة جُملة.</strong></li>
+    <li><strong>اسم الحساب:</strong> شركة محمد حسن محمد الحربي لتجارة الجملة</li>
+    <li><strong>رقم الحساب:</strong> <span dir="ltr">589000010006086204363</span></li>
+    <li><strong>رقم الآيبان:</strong> <span dir="ltr">SA9480000589608016204363</span></li>
+    <li class="mt-2 text-success"><strong>المبلغ المطلوب دفعه:</strong> {{ voucher.quantity }} ريال سعودي</li>
+  </ul>
+</div>
+
+<!-- 🧾 تفاصيل السند -->
+<h2 class="mb-4">🧾 تفاصيل السند</h2>
+<div class="card p-4 shadow-sm">
+  <h5>معلومات السند:</h5>
+  <ul>
+    <li><strong>الرمز:</strong> {{ voucher.code }}</li>
+    <li><strong>المنتج:</strong> {{ voucher.product }}</li>
+    <li><strong>الكمية:</strong> {{ voucher.quantity }}</li>
+    <li><strong>الحالة الحالية:</strong> {{ voucher.status }}</li>
+  </ul>
+
+  {% if voucher.payment_note %}
+    <div class="alert alert-warning">
+      ملاحظة من الإدارة: {{ voucher.payment_note }}
+    </div>
+  {% endif %}
+
+  <form method="post">
+    <!-- ✅ CSRF token هنا -->
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="mb-3">
+      <label for="account_name" class="form-label">اسم الحساب البنكي الذي تم التحويل منه:</label>
+      <input type="text" name="account_name" id="account_name" class="form-control" placeholder="مثلًا: مؤسسة النجاح التجارية" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">✔ تأكيد الدفع</button>
+    <a href="{{ url_for('factory.vouchers_list') }}" class="btn btn-secondary">رجوع</a>
+  </form>
+</div>
+
+{% endblock %}

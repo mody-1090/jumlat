@@ -1,0 +1,25 @@
+<!-- templates/dashboard_promoter/settings.html -->
+{% extends "dashboard_promoter/base.html" %}
+{% block promoter_content %}
+<h3 class="mb-4">إعدادات الحساب البنكي</h3>
+<form method="POST">
+  {{ form.hidden_tag() }}
+
+  <div class="mb-3">
+    {{ form.account_holder_name.label(class="form-label") }}
+    {{ form.account_holder_name(class="form-control") }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.bank_name.label(class="form-label") }}
+    {{ form.bank_name(class="form-control") }}
+  </div>
+
+  <div class="mb-3">
+    {{ form.iban.label(class="form-label") }}
+    {{ form.iban(class="form-control") }}
+  </div>
+
+  <button type="submit" class="btn btn-primary">حفظ</button>
+</form>
+{% endblock %}

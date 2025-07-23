@@ -1,0 +1,43 @@
+{# templates/dashboard_factory/commission_invoices.html #}
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<h2 class="mb-4">📄 فواتير الرسوم المدفوعه</h2>
+
+{% if invoices %}
+  {% set ns = namespace(seen=[]) %}
+
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th>📄 رقم الفاتورة</th>
+          <th>📅 التاريخ</th>
+          <th>📁 الملف</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for inv in invoices %}
+        {% set key = inv.invoice_number or '' %}
+        {% if key not in ns.seen %}
+          {% set _ = ns.seen.append(key) %}
+          <tr>
+            <td>{{ inv.invoice_number or "—" }}</td>
+            <td>{{ inv.created_at.strftime('%Y/%m/%d') }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary"
+                 href="{{ inv.pdf_url }}" target="_blank">
+                <i class="bi bi-file-earmark-pdf-fill"></i> عرض PDF
+              </a>
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">لا توجد فواتير عمولة حتى الآن.</div>
+{% endif %}
+
+{% endblock %}

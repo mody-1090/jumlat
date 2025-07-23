@@ -1,0 +1,183 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+  .stat-card{background:#fff;border-radius:12px;padding:1.8rem;
+             box-shadow:0 4px 14px rgba(0,0,0,.06);transition:.3s;height:100%;
+             display:flex;align-items:center;gap:1rem}
+  .stat-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
+  .stat-icon{font-size:2.2rem;width:60px;height:60px;display:flex;
+             align-items:center;justify-content:center;border-radius:50%;color:#fff}
+  .stat-value{font-size:1.8rem;font-weight:700;margin:0}
+  .stat-label{margin:0;color:#555;font-size:.95rem}
+  .ic-blue{background:#2575fc}.ic-green{background:#28a745}
+  .ic-yellow{background:#ffc107}.ic-gray{background:#6c757d}
+  .ic-purple{background:#6f42c1}.ic-orange{background:#fd7e14}
+</style>
+
+<h2 class="mb-4">لوحة تحكّم المصنع</h2>
+
+<!-- بطاقات السندات -->
+<div class="row g-4">
+  {% set cards = [
+      ('ic-blue','bi-files',total,'إجمالي السندات'),
+      ('ic-gray','bi-plus-square',new,'سندات جديدة'),
+      ('ic-yellow','bi-link-45deg',active,'سندات مُفعَّلة'),
+      ('ic-green','bi-check-circle',used,'سندات تم طلبها')
+  ] %}
+  {% for clr,ic,val,lab in cards %}
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon {{ clr }}"><i class="bi {{ ic }}"></i></div>
+      <div><p class="stat-value">{{ val }}</p><p class="stat-label">{{ lab }}</p></div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- بطاقات المبيعات والعمولات -->
+<div class="row g-4 mt-1">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon ic-purple"><i class="bi bi-cash-stack"></i></div>
+      <div>
+        <p class="stat-value">{{ "%.2f"|format(sales_total) }} ر.س</p>
+        <p class="stat-label">قيمة المبيعات (شامل الضريبة)</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon ic-orange"><i class="bi bi-star"></i></div>
+      <div>
+        <p class="stat-value">{{ "%.2f"|format(promoters_commission) }} ر.س</p>
+        <p class="stat-label">إجمالي عمولات المروّجين</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon ic-green"><i class="bi bi-graph-up-arrow"></i></div>
+      <div>
+        <p class="stat-value">{{ "%.2f"|format(net_profit) }} ر.س</p>
+        <p class="stat-label">صافى ربح المصنع</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- إرشادات ثابتة للمصنع -->
+<!-- إرشادات ثابتة للمصنع -->
+<!-- إرشادات ثابتة للمصنع -->
+<div class="mt-5 p-4 bg-white shadow-sm rounded">
+  <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb"></i> دورة السند على «جُملة»</h5>
+
+  <ol class="lh-lg mb-4">
+
+  <!-- 1. إصدار السند -->
+  <li>
+    <span class="badge bg-secondary">إصدار</span> –
+    تختار أنت كيف تُوزِّع الكراتين:
+    قد تُنشئ <em>سندًا واحدًا بـ 50 كرتون</em> أو <em>سندين كل منهما 25 كرتون</em>… المهم هو
+    <strong>إجمالي الكراتين في الإصدار</strong>.
+  </li>
+
+  <!-- 2. مراجعة الإدارة (قبول أولي) -->
+  <li>
+    <span class="badge bg-info text-dark">قبول أولي</span> –
+    تتحقّق إدارة المنصّة من صحة البيانات والكمية.
+    إذا كان كل شيء سليمًا تنتقل مباشرة إلى صفحة <strong>«مطلوب دفع رسوم المنصّة»</strong>.
+  </li>
+
+  <!-- 3. دفع الرسوم -->
+  <li>
+    <span class="badge bg-warning text-dark">دفع الرسوم</span> –
+    تُسدِّد <strong>1&nbsp;ر.س عن كل كرتون في الإصدار ككل</strong>
+    (مثـلاً: 50 كرتون = 50 ر.س سواء في سند واحد أو عدّة سندات).
+    بعد الدفع تُصدر فاتورة ضريبية PDF وتحفظ تلقائيًا بحسابك.
+  </li>
+
+  <!-- 4. نشر السند في السوق -->
+  <li>
+    <span class="badge bg-primary">نزول للسوق</span> –
+    فور تأكيد الدفع تُفعِّل الإدارة السندات وتُصبح متاحة للمروّجين في السوق.
+  </li>
+
+   <!-- 5. بدء شبكة المروّجين -->
+   <!-- 5. تحرّك شبكة المروّجين -->
+  <li>
+    <span class="badge bg-success">شبكة المروّجين</span> –
+    بعد تفعيل السند في السوق يبدأ المروّجون بالنزول ميدانيًا
+    والبحث عن عملاء تجزئة محتملين (زيارات لمتاجر، مكالمات، تواصل مباشر)،
+    والهدف هو <strong>تسجيل طلب مؤكّد</strong> للكرتون دون أن يتسلّم المروّج أية مبالغ من العميل.
+  </li>
+
+  <!-- 6. استلام الطلب والدفع عند الاستلام -->
+  <li>
+    <span class="badge bg-success bg-opacity-75">استلام الطلب (COD)</span> –
+    يصل طلب العميل إلى لوحة تحكمك وتقوم بشحن الكراتين.
+    عند التسليم يستلم مندوبك <strong>الدفع عند الاستلام</strong> مباشرة من العميل.
+    بعدها تحوَّل العمولة إلى رصيد المروّج، ويُحدَّث صافي ربح المصنع.
+  </li>
+
+</ol>
+
+
+  <h6 class="fw-bold mb-3"><i class="bi bi-calculator"></i> مثال حسابي سريع</h6>
+
+  <div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>البند</th>
+          <th>القيمة</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>عدد الكراتين في السند</td>
+          <td><strong>200 كرتون</strong></td>
+        </tr>
+        <tr>
+          <td>رسم المنصّة (1 ر.س × 200)</td>
+          <td><strong>200&nbsp;ر.س</strong> (يُسدَّد الآن ثم تُصدر فاتورة)</td>
+        </tr>
+        <tr>
+          <td>سعر بيع الكرتون</td>
+          <td><strong>150&nbsp;ر.س</strong></td>
+        </tr>
+        <tr>
+          <td>الكراتين المُباعة (مكتملة الشحن)</td>
+          <td>120 كرتون</td>
+        </tr>
+        <tr class="table-success">
+          <td>إجمالي المبيعات (120 × 150)</td>
+          <td><strong>18&nbsp;000&nbsp;ر.س</strong></td>
+        </tr>
+        <tr>
+          <td>عمولة المروّجين (10 %)</td>
+          <td>1&nbsp;800&nbsp;ر.س</td>
+        </tr>
+        <tr>
+          <td>رسوم المنصّة المُسدَّدة</td>
+          <td>-200 ر.س</td>
+        </tr>
+     <tr class="table-primary">
+  <td>صافي ربح المصنع</td>
+  <td><strong>16&nbsp;000&nbsp;ر.س&nbsp;(18٬000 − 1٬800 − 200)</strong></td>
+</tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <p class="mt-3 mb-0">
+    كل سند يضم عدداً من الكراتين؛ رسوم المنصّة تُسدَّد مرة واحدة مُسبقًا فتُفعَّل السندات بأسرع وقت،
+    وكل كرتون مكتمل يرفع مباشرة مبيعاتك وصافي أرباحك.
+  </p>
+</div>
+
+{% endblock %}

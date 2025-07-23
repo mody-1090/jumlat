@@ -1,0 +1,115 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<h2>إصدار سندات توريد</h2>
+
+<form method="POST" class="row g-3">
+  {{ form.hidden_tag() }}
+
+  <!-- اسم المنتج -->
+  <div class="col-md-4">
+    {{ form.product.label(class="form-label") }}
+    {{ form.product(class="form-control") }}
+    {% for e in form.product.errors %}
+      <small class="text-danger">{{ e }}</small>
+    {% endfor %}
+  </div>
+
+  <!-- الكمية لكل سند -->
+  <div class="col-md-4">
+    {{ form.quantity.label(class="form-label") }}
+    {{ form.quantity(class="form-control") }}
+    {% for e in form.quantity.errors %}
+      <small class="text-danger">{{ e }}</small>
+    {% endfor %}
+  </div>
+
+  <!-- عدد السندات -->
+  <div class="col-md-4">
+    {{ form.count.label(class="form-label") }}
+    {{ form.count(class="form-control") }}
+    {% for e in form.count.errors %}
+      <small class="text-danger">{{ e }}</small>
+    {% endfor %}
+  </div>
+
+  <!-- سعر الوحدة -->
+  <div class="col-md-4">
+    {{ form.price_per_unit.label(class="form-label") }}
+    {{ form.price_per_unit(class="form-control", id="price_per_unit") }}
+    {% for e in form.price_per_unit.errors %}
+      <small class="text-danger">{{ e }}</small>
+    {% endfor %}
+    <small class="text-muted d-block mt-1">
+     اكتب سعر الوحدة بدون ضريبة 
+    </small>
+  </div>
+
+  <!-- نسبة الضريبة (ثابتة) -->
+  <div class="col-md-4">
+    {{ form.vat_rate.label(class="form-label") }}
+    {{ form.vat_rate(class="form-control", readonly=true) }}
+    {% for e in form.vat_rate.errors %}
+      <small class="text-danger">{{ e }}</small>
+    {% endfor %}
+  </div>
+
+  <!-- عمولة المروج -->
+  <div class="col-md-4">
+    {{ form.commission_per.label(class="form-label") }}
+    {{ form.commission_per(class="form-control") }}
+    {% for e in form.commission_per.errors %}
+      <small class="text-danger">{{ e }}</small>
+    {% endfor %}
+  </div>
+
+  <!-- مدينة السند -->
+  <div class="col-md-4">
+    {{ form.city.label(class="form-label") }}
+    {{ form.city(class="form-select") }}
+    {% for e in form.city.errors %}
+      <small class="text-danger">{{ e }}</small>
+    {% endfor %}
+  </div>
+
+  <div class="col-12">
+    {{ form.submit(class="btn btn-primary px-5") }}
+  </div>
+</form>
+
+<script>
+  const vatRate = parseFloat("{{ form.vat_rate.data or 15 }}");
+  const priceInput = document.getElementById("price_per_unit");
+  const outputSpan = document.getElementById("price_without_vat");
+
+  function updatePriceWithoutVAT() {
+    const val = parseFloat(priceInput.value);
+    if (!isNaN(val)) {
+      const base = val / (1 + vatRate / 100);
+      outputSpan.textContent = base.toFixed(2);
+    } else {
+      outputSpan.textContent = '-';
+    }
+  }
+
+  priceInput?.addEventListener("input", updatePriceWithoutVAT);
+  window.addEventListener("load", updatePriceWithoutVAT);
+</script>
+
+{% if created %}
+  <div class="alert alert-success mt-4">
+    ✔ تم إصدار {{ created|length }} سند توريد بنجاح
+  </div>
+
+  <p class="mt-3 fw-bold">
+    شارك الرابط التالي في حساب المصنع أو الوكلاء لزيادة وصول السندات:
+  </p>
+  {% set tweet = 'أصدرت ' ~ created|length ~ ' سند توريد عبر منصة جُملة — انضم الآن: ' ~ request.url_root ~ 'market' %}
+  <a class="btn btn-info" target="_blank"
+     href="https://twitter.com/intent/tweet?text={{ tweet|urlencode }}">
+     <i class="bi bi-twitter"></i> تغريد عن السندات
+  </a>
+{% endif %}
+{% endblock %}

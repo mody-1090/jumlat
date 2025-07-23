@@ -1,0 +1,12 @@
+{% extends "dashboard_promoter/base.html" %}
+{% block promoter_content %}
+<h4 class="mb-3">تظلّم على سحب #{{ withdrawal.id }}</h4>
+<form method="POST">
+  {{ csrf_token() }}
+  <div class="mb-3">
+    <label class="form-label">سبب التظلّم</label>
+    <textarea name="reason" class="form-control" rows="4" required></textarea>
+  </div>
+  <button class="btn btn-danger">إرسال التظلّم</button>
+</form>
+{% endblock %}

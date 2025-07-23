@@ -1,0 +1,53 @@
+{% extends "shared/base.html" %}
+{% block title %}لوحة التحكم – مروّج جُملة{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- الشريط الجانبي -->
+  <nav class="col-md-2 bg-light sidebar py-4">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('promoter.dashboard') }}">
+          🏠 الرئيسية
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('promoter.vouchers') }}">
+          📋 سنداتي
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('promoter.earnings') }}">
+          💰 أرباحي
+        </a>
+      </li>
+    
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('promoter.settings') }}">
+          ⚙️ الإعدادات
+        </a>
+      </li>
+
+
+
+
+    </ul>
+  </nav>
+
+  <!-- محتوى الصفحة -->
+  <main class="col-md-10 py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block promoter_content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,419 @@
+/*--------------------------------------
+  إعدادات أساسية
+---------------------------------------*/
+
+/* استخدام خط عربي عصري */
+@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap");
+
+html {
+  direction: rtl; /* لضمان الاتجاه من اليمين إلى اليسار */
+}
+
+body {
+  font-family: "Tajawal", sans-serif;
+  background-color: #f8f7f7; /* خلفية ناعمة */
+  margin: 0;
+  padding: 0;
+  color: #080808; /* لون النص الافتراضي */
+}
+
+/*--------------------------------------
+  شريط التنقل (Navbar)
+---------------------------------------*/
+
+.navbar {
+  background-color: #0d6efd; /* لون أزرق مميز */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* ظل خفيف */
+}
+
+.navbar .navbar-brand {
+  color: #050000;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.navbar .nav-link {
+  color: #000000;
+  margin-right: 10px;
+  transition: color 0.3s ease-in-out;
+}
+
+.navbar .nav-link:hover {
+  color: #ffc107; /* لون ذهبي عند التمرير */
+}
+
+.navbar .btn {
+  font-weight: 700;
+}
+
+/*--------------------------------------
+  أزرار مخصصة
+---------------------------------------*/
+
+.btn-custom {
+  background-color: #0d6efd; /* أزرق */
+  color: #fff;
+  border: none;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.btn-custom:hover {
+  background-color: #0b5ed7; /* أزرق غامق عند التمرير */
+}
+
+/*--------------------------------------
+  محتوى الصفحة
+---------------------------------------*/
+
+h1, h2, h3, h4, h5 {
+  color: #0d6efd; /* لون أزرق للعناوين */
+  font-weight: 700;
+}
+
+.card {
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+.card:hover {
+  transform: scale(1.02); /* تكبير بسيط عند التمرير */
+}
+
+/*--------------------------------------
+  الشريط السفلي (Footer)
+---------------------------------------*/
+
+footer {
+  background-color: #0d6efd;
+  color: #000000;
+  padding: 10px 0;
+}
+
+footer a {
+  color: #000000;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/*--------------------------------------
+  وضع الجوال (Mobile Mode)
+---------------------------------------*/
+
+/* عند إضافة هذه الكلاس إلى عنصر الجذر (مثل <body>) أو حاوية الصفحة،
+   سيجعل المحتوى يبدو كأنه ضمن شاشة جوال */
+   .mobile-mode {
+    /* يمكنك ضبط العرض والارتفاع حسب القياسات التي تفضلها:
+       414px عرض شاشة آيفون 12 تقريبًا
+       812px ارتفاع شاشة آيفون 12 تقريبًا
+       غيِّر الأرقام حسب رغبتك */
+    max-width: 414px; 
+    height: 812px; 
+    margin: 0 auto;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    overflow: hidden; /* منع التمدد خارج الإطار */
+    background-color: #fff;
+    color: #000;
+  }
+  
+  /* مثال لتنسيق شريط التنقل في وضع الجوال */
+  .mobile-mode .navbar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ccc;
+    /* إذا كان هناك زر تنقل جانبي أو أيقونة، قد ترغب بتعديل التنسيق أكثر */
+  }
+  
+  /* الروابط في وضع الجوال */
+  .mobile-mode .nav-link {
+    color: #333;
+    font-size: 14px; /* بإمكانك تغيير الحجم ليتناسب مع عرض الجوال */
+    padding: 10px;
+  }
+  
+  .mobile-mode .nav-link:hover {
+    color: #666;
+  }
+  
+  /* أزرار مخصصة في وضع الجوال */
+  .mobile-mode .btn-custom {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    font-size: 14px; 
+    padding: 8px 16px;
+    border-radius: 5px;
+    margin: 10px;
+  }
+  
+  .mobile-mode .btn-custom:hover {
+    background-color: #0069d9;
+  }
+  
+  /* مثال لتنسيق الترويسات (h1, h2, h3...) في وضع الجوال */
+  .mobile-mode h1,
+  .mobile-mode h2,
+  .mobile-mode h3 {
+    margin: 10px;
+    font-weight: 600;
+  }
+  
+  /* مثال لتنسيق الفقرات */
+  .mobile-mode p {
+    margin: 10px;
+    line-height: 1.6;
+  }
+  
+  /* تذييل الصفحة */
+  .mobile-mode footer {
+    background-color: #f8f9fa;
+    color: #333;
+    border-top: 1px solid #ccc;
+    text-align: center;
+    padding: 10px;
+  }
+  
+  /* يمكنك استخدام ميديا كويري (Media Query) لمزيد من الضبط حسب أبعاد الشاشة الحقيقية */
+  @media (max-width: 576px) {
+    .mobile-mode {
+      max-width: 100%; /* استغلال عرض الشاشة كاملاً على الأجهزة الصغيرة */
+      height: auto;    /* فتح المجال لطول الصفحة */
+      border-radius: 0;
+      border: none;
+    }
+  }
+  
+
+  /*--------------------------------------
+  الاستعلامات الإعلامية للجوال
+  عندما يكون عرض الشاشة 576px أو أقل
+---------------------------------------*/
+@media (max-width: 576px) {
+  /* تقليل حجم الخط بشكل عام */
+  body {
+    font-size: 14px;
+  }
+
+  /* نجعل التنقّل في سطرين أو نستخدم منسق عمودي مثلاً */
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .navbar a {
+    margin: 5px 0; /* توزيع الروابط عموديًا */
+  }
+
+  /* نجعل الحاوية بعرض الشاشة كاملاً بدون حدود جانبية كبيرة */
+  .container {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+
+
+/* شبكة عرض المدونات */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* بطاقة المدونة */
+.blog-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+}
+
+.blog-card:hover {
+  transform: translateY(-5px);
+}
+
+/* خلفية الصورة وعرض العنوان */
+.blog-image {
+  position: relative;
+  height: 250px;
+  background-size: cover;
+  background-position: center;
+}
+
+.blog-image .overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.blog-title {
+  margin: 0;
+  font-size: 1.3em;
+  color: #fff;
+}
+
+.blog-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* محتوى بطاقة المدونة */
+.blog-content {
+  padding: 15px;
+}
+
+.blog-excerpt {
+  font-size: 0.95em;
+  color: #555;
+}
+
+/* زر "قراءة المزيد" */
+.btn.read-more-btn {
+  display: inline-block;
+  background: #00539C;
+  color: #fff;
+  padding: 10px 15px;
+  text-decoration: none;
+  border-radius: 4px;
+  margin-top: 10px;
+  transition: background 0.3s;
+}
+
+.btn.read-more-btn:hover {
+  background: #003F7F;
+}
+
+
+/* تصميم صفحة تفاصيل المدونة */
+.blog-detail-page {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* قسم الصورة الرئيسية */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+.hero .blog-title {
+  font-size: 2.8em;
+  color: #fff;
+  margin: 0;
+}
+
+.hero .post-date {
+  color: #ddd;
+  margin-top: 10px;
+  font-size: 1.2em;
+}
+
+/* قسم المحتوى الرئيسي */
+.blog-content {
+  padding: 40px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.content-container {
+  font-size: 1.1em;
+  text-align: justify;
+}
+
+/* شريط المشاركة */
+.share-bar {
+  margin: 40px auto;
+  text-align: center;
+  padding: 20px 0;
+  border-top: 1px solid #ddd;
+}
+
+.share-bar p {
+  font-size: 1.1em;
+  margin-bottom: 10px;
+}
+
+.share-link {
+  display: inline-block;
+  margin: 0 10px;
+  color: #00539C;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.share-link:hover {
+  color: #003F7F;
+}
+
+
+
+
+/* توسيط النص داخل المحرر */
+.ql-editor {
+  text-align: center; /* محاذاة النص للمنتصف */
+  direction: rtl; /* الكتابة من اليمين إلى اليسار */
+}
+
+/* جعل نموذج الإدخال في المنتصف */
+.blog-form {
+  width: 60%;
+  margin: 0 auto; /* توسيط النموذج */
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: center; /* توسيط النص */
+}
+
+.form-group label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* تنسيق زر النشر */
+.submit-btn {
+  display: block;
+  width: 100%;
+  background: #28a745;
+  color: #fff;
+  padding: 12px;
+  font-size: 18px;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover {
+  background: #218838;
+}

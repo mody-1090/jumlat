@@ -1,0 +1,8 @@
+{% extends "dashboard_admin/base.html" %}
+
+{% block title %}لوحة الإدارة – التقارير{% endblock %}
+
+{% block admin_content %}
+  <h2 class="mb-4">التقارير</h2>
+  <pre>{{ report|pprint }}</pre>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "shared/base.html" %}
+{% block title %}تم استقبال طلبك{% endblock %}
+
+{% block content %}
+<div class="text-center mt-5">
+  <h2 class="text-success mb-3">🎉 تم تأكيد الطلب!</h2>
+
+  <p class="lead">رقم السند: <strong>{{ voucher.code }}</strong></p>
+  <p>سيزوركم مندوب المصنع لتوريد الكمية المتفق عليها.</p>
+
+  <a class="btn btn-outline-primary"
+     href="{{ url_for('public.market') }}">
+     العودة إلى سوق السندات
+  </a>
+</div>
+{% endblock %}

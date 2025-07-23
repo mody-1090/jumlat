@@ -1,0 +1,40 @@
+{# templates/dashboard_admin/index.html #}
+{% extends "dashboard_admin/base.html" %}
+
+{% block title %}لوحة الإدارة – الرئيسية{% endblock %}
+
+{# ✱✱ استخدم admin_content وليس content ✱✱ #}
+{% block admin_content %}
+  <h1 class="mb-4">مرحباً بك، الإدارة</h1>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">المصانع</h5>
+          <p class="display-6">{{ stats.factories }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">المروجون</h5>
+          <p class="display-6">{{ stats.promoters }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card text-center shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">التظلمات</h5>
+          <p class="display-6">{{ stats.vouchers }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+

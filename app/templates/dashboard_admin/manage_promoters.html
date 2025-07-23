@@ -1,0 +1,28 @@
+{% extends "dashboard_admin/base.html" %}
+
+{% block title %}لوحة الإدارة – المروجين{% endblock %}
+
+{% block admin_content %}
+  <h2 class="mb-4">إدارة المروجين</h2>
+  <table class="table table-bordered mt-3">
+    <thead class="table-light">
+      <tr>
+        <th>الاسم</th>
+        <th>المستخدم</th>
+        <th>الإجراءات</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in promoters %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ p.user.username }}</td>
+          <td>
+            <a href="#" class="btn btn-sm btn-outline-primary">تعديل</a>
+            <a href="#" class="btn btn-sm btn-outline-danger">حذف</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

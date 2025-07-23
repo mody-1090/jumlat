@@ -1,0 +1,50 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+<h2 class="mb-4">💵 دفعات العمولات</h2>
+
+{% if groups %}
+  <table class="table table-bordered table-hover">
+    <thead class="table-light">
+      <tr class="text-center">
+        <th>المنتج</th>
+        <th>عدد السندات</th>
+        <th>الكميّة</th>
+        <th>مبلغ العمولة (ريال)</th>
+        <th>الحالة</th>
+        <th>الإجراء</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for batch in groups %}
+      <tr class="text-center">
+        <td>{{ batch.product }}</td>
+        <td>{{ batch.voucher_count }}</td>
+        <td>{{ batch.total_quantity }}</td>
+        <td>{{ batch.total_commission }}</td>
+        <td>
+          {% if batch.status == 'awaiting_payment' %}
+            <span class="text-warning">مطلوب دفع</span>
+          {% elif batch.status == 'payment_rejected' %}
+            <span class="text-danger">مرفوض</span>
+          {% elif batch.status == 'payment_under_review' %}
+            <span class="text-info">قيد المراجعة</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if batch.status in ['awaiting_payment', 'payment_rejected'] %}
+            <a href="{{ url_for('factory.upload_batch_proof', batch_id=batch.id) }}"
+               class="btn btn-sm btn-outline-primary">
+               رفع إثبات
+            </a>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="alert alert-info">لا توجد دفعات معلَّقة.</div>
+{% endif %}
+{% endblock %}

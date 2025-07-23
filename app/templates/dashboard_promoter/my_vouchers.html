@@ -1,0 +1,138 @@
+{% extends "dashboard_promoter/base.html" %}
+{% block promoter_content %}
+
+<h3 class="mb-4">سنداتي</h3>
+
+{# ───── تعليمات ثابتة ───── #}
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title mb-3">دليل الربح من السندات – كيف تعمل منصّتنا؟</h5>
+
+    <p class="mb-2">
+      نحن <strong>منصّة وسيطة</strong> تربطك بالمصنع مباشرة. لستَ بحاجة إلى رأس مال
+      أو مخزون مسبق؛ دورك هو <strong>جلب العميل</strong> فقط، بينما يقوم المصنع
+      بتجهيز الطلب وتوصيل البضاعة بنظام
+      <em>الدفع عند الاستلام (Cash On Delivery)</em>. بعد إتمام العملية
+      تُحتسب عمولتك عن كل كرتون يُباع.
+    </p>
+
+    <p class="fw-bold mb-1">لديك طريقتان لاستخدام السند:</p>
+    <ul>
+      <li>
+        <strong>الطريقة&nbsp;الأولى – إنشاء الطلب نيابة عن العميل:</strong>
+        اختر السند المطلوب ثم اضغط
+        <span class="badge bg-primary">إنشاء طلب</span>، وادخِل اسم العميل
+        ورقم جواله. يصل الطلب إلى المصنع فورًا ويُشحن إلى العميل، وسترى
+        حالته تتحوّل إلى
+        <span class="badge bg-success">تم الطلب</span>.
+      </li>
+
+      <li>
+        <strong>الطريقة&nbsp;الثانية – طباعة السند وإعطاؤه للعميل المحتمل:</strong>
+        احفظ ملف الـ PDF الذي يحتوي رمز&nbsp;QR، واطبعه أو أرسله للعميل.
+        عند مسح الـ QR يُفتح نموذج الطلب ليملأ العميل بياناته بنفسه.
+      </li>
+    </ul>
+
+    <p class="fw-bold mb-1">مثال عملي سريع:</p>
+    <ol class="ps-3 mb-0">
+      <li>لديك عميل محلّ عصائر يرغب في طلب <strong>10 كراتين</strong>.</li>
+      <li>اختر سند «عصير × 10» واضغط «إنشاء طلب»، ثم أدخِل اسم صاحب المحل ورقم جواله.</li>
+      <li>بعد أن يُسلَّم الطلب ويُحصّل ثمنه عند الاستلام، تنتقل عمولتك تلقائيًا من
+          «<span class="text-muted">محتملة</span>» إلى
+          «<span class="text-primary">مؤكَّدة</span>» ثم إلى
+          «<span class="text-success">تم التحويل</span>» عندما يحوّلها المصنع.</li>
+    </ol>
+  </div>
+</div>
+
+{# ───── التصفية بالمنتج ───── #}
+<form method="get" class="mb-3 d-inline-block">
+  <label class="fw-bold me-2">تصفية المنتج:</label>
+  <select name="product" class="form-select d-inline w-auto" onchange="this.form.submit()">
+    <option value="all" {{ 'selected' if chosen == 'all' }}>كلّ المنتجات</option>
+    {% for p in products %}
+      <option value="{{ p }}" {{ 'selected' if p == chosen }}>{{ p }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+{# ───── التبويبات حسب الحالة ───── #}
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-active">
+      🟠 مفعَّلة ({{ active|length }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-used">
+      ✅ تم الطلب ({{ used|length }})</a></li>
+</ul>
+
+<div class="tab-content">
+
+{% macro render_table(vouchers) -%}
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th style="width:120px">الكود</th>
+        <th style="width:90px">الحالة</th>
+        <th>المنتج</th>
+        <th class="text-center" style="width:90px">الكمية</th>
+        <th class="text-center" style="width:160px">الإجراء</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vouchers %}
+      <tr>
+        <td>{{ v.code }}</td>
+        <td>
+          {% if v.status == 'active' %}
+            <span class="badge bg-warning text-dark">مفعَّل</span>
+          {% else %}
+            <span class="badge bg-success">تم الطلب</span>
+          {% endif %}
+        </td>
+        <td>{{ v.product }}</td>
+        <td class="text-center">{{ v.quantity }}</td>
+        <td class="text-center">
+          {% if v.status == 'active' %}
+            <a class="btn btn-sm btn-primary"
+               href="{{ url_for('public.confirm_order', code=v.code) }}">
+              إنشاء طلب
+            </a>
+          {% endif %}
+        </td>
+      </tr>
+
+      {# معاينة الـ PDF #}
+{# زر تحميل الـ PDF #}
+<tr class="table-secondary">
+  <td colspan="5" class="text-center">
+    {% if v.invoice_path %}
+      {# اختر الرابط المناسب: سحابي أو داخل static #}
+      {% if v.invoice_path.startswith('http') %}
+        {% set pdf_url = v.invoice_path %}
+      {% else %}
+        {% set pdf_url = url_for('static', filename=v.invoice_path) %}
+      {% endif %}
+
+      <a href="{{ pdf_url }}" target="_blank" class="btn btn-outline-secondary">
+        📄 تحميل السند (PDF)
+      </a>
+    {% else %}
+      <span class="text-danger">لم يتم توليد ملف PDF لهذا السند بعد.</span>
+    {% endif %}
+  </td>
+</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{%- endmacro %}
+
+  <div class="tab-pane fade show active" id="tab-active">
+    {{ render_table(active) }}
+  </div>
+
+  <div class="tab-pane fade" id="tab-used">
+    {{ render_table(used) }}
+  </div>
+
+</div>
+{% endblock %}

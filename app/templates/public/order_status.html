@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تفاصيل الطلب {{ order.id }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+</head>
+<body class="container py-4">
+  <h3 class="mb-4 text-center">متابعة حالة الطلب</h3>
+
+  <div class="alert alert-info text-center fs-5">
+    الحالة الحالية: <strong>{{ order.status|upper }}</strong>
+  </div>
+
+  <table class="table table-bordered">
+    <tr><th>رقم السند</th><td>{{ order.voucher.code }}</td></tr>
+    <tr><th>المنتج</th><td>{{ order.voucher.product }}</td></tr>
+    <tr><th>الكمية</th><td>{{ order.quantity }}</td></tr>
+    <tr><th>اسم العميل</th><td>{{ order.customer_name }}</td></tr>
+    <tr><th>الجوال</th><td>{{ order.customer_phone }}</td></tr>
+    <tr><th>اسم المحل</th><td>{{ order.shop_name }}</td></tr>
+    <tr><th>السجل التجاري</th><td>{{ order.cr_number }}</td></tr>
+    <tr><th>الرقم الضريبي</th><td>{{ order.vat_number }}</td></tr>
+    <tr><th>المدينة</th><td>الرياض</td></tr>
+    <tr><th>العنوان</th>
+        <td>
+          {{ order.address_detail or '—' }}
+          {% if order.maps_link %}
+            <br><a target="_blank" href="{{ order.maps_link }}">فتح في Google Maps</a>
+          {% endif %}
+        </td>
+    </tr>
+    <tr><th>الوقت المفضل</th><td>{{ order.preferred_time }}</td></tr>
+    <tr><th>ملاحظـات</th><td>{{ order.notes or '—' }}</td></tr>
+    <tr><th>تاريخ الإنشاء</th><td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+  </table>
+</body>
+</html>

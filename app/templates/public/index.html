@@ -1,0 +1,227 @@
+{# templates/public/index.html #}
+{% extends "shared/base.html" %}
+{% block title %}منصّة جُملة – توريد بلا رأس مال{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --primary:     #2c7df7;
+    --dark:        #0b1b46;
+    --light:       #f7f8fc;
+    --ticker-bg:   #28a745;
+    --prod-bg:     #155724;
+    --units-bg:    #19692c;
+    --price-bg:    #218838;
+    --comm-bg:     #28a745;
+  }
+  body {
+    background: var(--light);
+    font-family: 'Cairo', sans-serif;
+    margin: 0;
+  }
+
+  /* Hero */
+  #hero {
+    background: radial-gradient(circle at top left, var(--primary), var(--dark));
+    color: #fff;
+    text-align: center;
+    padding: 6rem 1rem 5rem;
+  }
+  #hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: .8rem;
+  }
+  #hero p {
+    font-size: 1.25rem;
+    max-width: 700px;
+    margin: auto;
+    opacity: .9;
+  }
+
+  /* Price Ticker */
+  .price-ticker {
+    background: var(--ticker-bg);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: .75rem 0;
+    margin: 2rem 0;
+  }
+  .price-ticker marquee {
+    display: block;
+  }
+  .price-ticker span {
+    display: inline-block;
+    margin-right: 2rem;
+    color: #fff;
+    font-weight: 600;
+  }
+  .price-ticker .ticker-product    { background: var(--prod-bg);  padding: 0 .5rem; border-radius:4px; }
+  .price-ticker .ticker-units      { background: var(--units-bg); padding: 0 .5rem; border-radius:4px; }
+  .price-ticker .ticker-price      { background: var(--price-bg); padding: 0 .5rem; border-radius:4px; }
+  .price-ticker .ticker-commission { background: var(--comm-bg);  padding: 0 .5rem; border-radius:4px; }
+
+  /* Sections */
+  .section {
+    padding: 4.5rem 0;
+  }
+  .section h2 {
+    text-align: center;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 2.3rem;
+    position: relative;
+  }
+  .section h2::after {
+    content: '';
+    display: block;
+    width: 70px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+    margin: 10px auto 0;
+  }
+
+  /* Icon-Box */
+  .icon-box {
+    background: #fff;
+    border-radius: 14px;
+    padding: 2.2rem 1.4rem;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,.07);
+    transition: .35s;
+  }
+  .icon-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 28px rgba(0,0,0,.09);
+  }
+  .icon-box i {
+    font-size: 3.2rem;
+    color: var(--primary);
+    margin-bottom: .9rem;
+  }
+  .icon-box h5 {
+    font-weight: 700;
+    margin-bottom: .5rem;
+  }
+  .icon-box p {
+    color: #555;
+    font-size: 1rem;
+  }
+
+  /* Example */
+  .example-box {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.05);
+    padding: 1.5rem;
+  }
+
+  @media(max-width:768px) {
+    #hero h1 { font-size: 2.5rem; }
+    #hero p  { font-size: 1.05rem; }
+  }
+</style>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="container">
+    <h1>منصّة جُملة</h1>
+    <p>حلّ توريد ذكي يربط المصانع بالمروّجين والعملاء دون رأس مال، بنظام الدفع عند الاستلام.</p>
+  </div>
+</section>
+
+{# Price Ticker #}
+{% if vouchers %}
+  <div class="price-ticker">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+      {% for product, items in vouchers|groupby('product') %}
+        {% set v = items[0] %}
+        <span>
+          <span class="ticker-product">المنتج: {{ product }}</span>
+          <span class="ticker-units">عدد الوحدات: {{ v.quantity }} وحدة</span>
+          <span class="ticker-price">السعر: {{ v.total_price|round(2) }} ر.س</span>
+          <span class="ticker-commission">عمولة المروج: {{ v.factory_commission|round(2) }} ر.س</span>
+        </span>
+      {% endfor %}
+    </marquee>
+  </div>
+{% endif %}
+
+<!-- Decorative Divider -->
+<div style="height:60px; background:url('/static/images/creative-divider.svg') center/cover no-repeat;"></div>
+
+<!-- How It Works -->
+<section class="section container">
+  <h2>كيف تعمل منصّة السندات؟</h2>
+  <div class="row gy-4">
+    <div class="col-md-4">
+      <div class="icon-box h-100">
+        <i class="bi bi-megaphone"></i>
+        <h5>للمروِّج (أنت)</h5>
+        <p class="mb-2">
+          ◂ تحصل على <strong>سند بضائع</strong> بلا تكلفة.<br>
+          ◂ تعرضه للعميل أو تطبعه PDF مع QR.<br>
+          ◂ عند الطلب أو المسح تُسجَّل عمولتك.
+        </p>
+        <p class="text-success fw-bold m-0">لا رأس مال أو مخزون.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="icon-box h-100">
+        <i class="bi bi-person-badge"></i>
+        <h5>للعميل</h5>
+        <p class="mb-2">
+          ◂ يملأ الطلب (يدويًا أو عبر QR).<br>
+          ◂ يستلم البضاعة من المصنع.<br>
+          ◂ يدفع <em>COD</em>.
+        </p>
+        <p class="text-primary fw-bold m-0">لا خطر الدفع المسبق.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="icon-box h-100">
+        <i class="bi bi-truck"></i>
+        <h5>للمصنع</h5>
+        <p class="mb-2">
+          ◂ يستلم الطلبات الجاهزة.<br>
+          ◂ يشحن ويحصّل.<br>
+          ◂ يحوِّل العمولة ويحتفظ بالربح.
+        </p>
+        <p class="text-warning fw-bold m-0">زيادة مبيعات بلا تسويق.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box mt-5">
+    <h5 class="fw-bold mb-3">مثال مختصر</h5>
+    <ol class="ps-3 mb-0">
+      <li>عميل يحتاج 10 كراتين عصير.</li>
+      <li>المروِّج يختار سند «عصير ×10» ويطبع QR.</li>
+      <li>المصنع يشحن والعميل يدفع عند الاستلام.</li>
+      <li>تُسجَّل عمولة المروِّج وتُحوَّل بعد التأكيد.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- Spacer -->
+<div style="height:60px;"></div>
+
+<!-- Certificates -->
+<section id="certificate" class="section">
+  <div class="container">
+    <h2 class="section-title">الاعتماد والشهادات</h2>
+    <div class="row align-items-center">
+      <div class="col-md-6 text-center mb-4 mb-md-0">
+        <img src="/static/images/certificate.jpg" alt="شهادة اعتماد" class="img-fluid rounded shadow-lg">
+      </div>
+      <div class="col-md-6">
+        <ul class="fs-5 list-unstyled">
+          <li><i class="bi bi-check-circle-fill text-primary me-2"></i>موثَّقة لدى مركز الأعمال السعودي</li>
+          <li><i class="bi bi-check-circle-fill text-primary me-2"></i>متوافقة مع أنظمة التجارة الإلكترونيّة</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

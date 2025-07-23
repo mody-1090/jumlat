@@ -1,0 +1,106 @@
+{# templates/dashboard_admin/voucher_review.html #}
+{% extends "dashboard_admin/base.html" %}
+{% block title %}مراجعة السندات – لوحة الإدارة{% endblock %}
+
+{% block admin_content %}
+<h2 class="mb-4">📝 السندات قيد المراجعة</h2>
+
+<!-- زر تفعيل / تعطيل القبول التلقائي -->
+<form method="POST" action="{{ url_for('admin.toggle_auto_approve') }}" style="display:inline;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">   {# ← الحل هنا #}
+  <button type="submit" class="btn btn-outline-primary">
+    {% if auto_approve_enabled %}
+      🔴 تعطيل القبول التلقائي
+    {% else %}
+      ✅ تفعيل القبول التلقائي
+    {% endif %}
+  </button>
+</form>
+
+<!-- زر تنفيذ القبول التلقائي -->
+<a href="{{ url_for('admin.auto_approve_now') }}" class="btn btn-success">
+  🔄 تنفيذ القبول التلقائي الآن
+</a>
+
+{% if vouchers %}
+  {# ❶-- نموذج واحد يغلّف الجدول كله #}
+  <form method="post" action="{{ url_for('admin.review_voucher_action') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover text-center align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width:1%">
+              <input type="checkbox" id="select-all">
+            </th>
+            <th>الرمز</th>
+            <th>المنتج</th>
+            <th>الكمية</th>
+            <th>المصنع</th>
+            <th>الإجراء الفردي</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        {% for v in vouchers %}
+          <tr>
+            <td>
+              <input type="checkbox" name="voucher_ids" value="{{ v.id }}" class="row-checkbox">
+            </td>
+            <td>{{ v.code }}</td>
+            <td>{{ v.product }}</td>
+            <td>{{ v.quantity }}</td>
+            <td>{{ v.factory.name }}</td>
+
+            <td>
+              <!-- قبول فردي -->
+              <button name="action" value="approve_{{ v.id }}"
+                      class="btn btn-success btn-sm">✔ قبول</button>
+
+              <!-- رفض فردي – يفتح حقل إدخال صغير عبر JS -->
+              <button type="button"
+                      class="btn btn-danger btn-sm"
+                      onclick="openReason('{{ v.id }}');">✖ رفض</button>
+
+              <input type="text" name="reason_{{ v.id }}"
+                     class="form-control form-control-sm d-none mt-1"
+                     id="reason-{{ v.id }}"
+                     placeholder="سبب الرفض">
+              <button name="action" value="reject_{{ v.id }}"
+                      id="send-{{ v.id }}"
+                      class="btn btn-danger btn-sm d-none mt-1">إرسال</button>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ❷-- أزرار التنفيذ الجماعي #}
+    <div class="mt-3">
+      <button name="action" value="approve_bulk" class="btn btn-success">✔ قبول المحدّد</button>
+      <button name="action" value="reject_bulk"  class="btn btn-danger">✖ رفض المحدّد</button>
+    </div>
+  </form>
+
+  {# ❸-- سكربت بسيط لتحديد الكل + إظهار حقل سبب الرفض #}
+  <script>
+    // تحديد الكل
+    document.getElementById('select-all')
+            .addEventListener('change', function () {
+              document.querySelectorAll('.row-checkbox')
+                      .forEach(cb => cb.checked = this.checked);
+            });
+
+    // فتح حقل السبب الفردي
+    function openReason(id) {
+      document.getElementById('reason-' + id).classList.remove('d-none');
+      document.getElementById('send-'   + id).classList.remove('d-none');
+    }
+  </script>
+
+{% else %}
+  <div class="alert alert-info">لا توجد سندات حالياً للمراجعة.</div>
+{% endif %}
+{% endblock %}
