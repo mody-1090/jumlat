@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<!-- غيّر إلى data-theme="light" لو تبغى الخلفية الفاتحة والشعار الأخضر -->
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}جُملة – منصة الشراء بالجملة{% endblock %}</title>
+
+  <!-- أيقونة -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo1.png') }}">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K7YH00K3CR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-K7YH00K3CR');
+  </script>
+
+  <!-- Bootstrap RTL -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- خط عربي -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --brand-primary: #59a52c;   /* أخضر أساسي */
+      --brand-dark-ink: #101010;  /* أسود داكن للخلفيات */
+      --brand-white:   #ffffff;
+      --text-body:     #0f1b14;
+      --border-soft:   #e6efdf;
+      --soft-shadow:   0 12px 40px rgba(0,0,0,.18);
+      --card-rad:      20px;
+    }
+    body{ color:var(--text-body); background:#fff; font-family:"Tajawal",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+
+    /* ======= NAV + Buttons (مختصر) ======= */
+    .navbar{ background:#fff !important; border-bottom:1px solid var(--border-soft); }
+    .navbar .navbar-brand{ color:var(--brand-primary) !important; font-weight:800; letter-spacing:.3px; }
+    .navbar .nav-link{ color:#28382a !important; }
+    .navbar .nav-link:hover{ color:var(--brand-primary) !important; }
+    .btn-primary{ background:var(--brand-primary); border-color:var(--brand-primary); }
+    .btn-primary:hover{ background:#437d21; border-color:#437d21; }
+    .btn-outline-primary{ color:var(--brand-primary); border-color:var(--brand-primary); }
+    .btn-outline-primary:hover{ color:#fff; background:var(--brand-primary); }
+    footer{ background:#f7fbf5 !important; border-top:1px solid var(--border-soft); }
+
+    /* =========================
+       شاشة الإيقاف (Splash)
+       ========================= */
+    #loading-screen{
+      position:fixed; inset:0; z-index:9999;
+      display:flex; align-items:center; justify-content:center; flex-direction:column;
+      padding:24px; overflow:hidden;
+      transition: opacity .5s ease, visibility .5s ease;
+      isolation:isolate;  /* لضمان الطبقات */
+    }
+
+    /* خلفية بحسب الثيم */
+    html[data-theme="dark"] #loading-screen{
+      background:
+        radial-gradient(900px 500px at 20% 25%, rgba(255,255,255,.06) 0%, transparent 60%),
+        radial-gradient(700px 400px at 80% 70%, rgba(255,255,255,.05) 0%, transparent 65%),
+        linear-gradient(180deg, #0b0b0b, var(--brand-dark-ink));
+    }
+    html[data-theme="light"] #loading-screen{
+      background:
+        radial-gradient(900px 500px at 20% 25%, rgba(95, 190, 60, .10) 0%, transparent 60%),
+        radial-gradient(700px 400px at 80% 70%, rgba(95, 190, 60, .08) 0%, transparent 65%),
+        linear-gradient(135deg, #f6fff1 0%, #ffffff 100%);
+    }
+
+    /* عناصر ديكورية ناعمة */
+    .blob{
+      position:absolute; border-radius:50%; filter: blur(40px); opacity:.25; z-index:-1;
+      animation: floatY 8s ease-in-out infinite;
+    }
+    .blob.one{ width:380px; height:380px; right: -120px; top: -120px; background: #6fca3a; animation-delay: .2s; }
+    .blob.two{ width:300px; height:300px; left: -80px; bottom: -100px; background: #59a52c; animation-delay: .8s; }
+    @keyframes floatY{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(18px); } }
+    @media (prefers-reduced-motion: reduce){
+      .blob{ animation: none; }
+    }
+
+    /* صندوق المحتوى */
+    .loading-box{
+      width:min(92vw, 560px);
+      text-align:center;
+      border-radius: var(--card-rad);
+      padding: 30px 26px 22px;
+      backdrop-filter: blur(6px);
+      box-shadow: var(--soft-shadow);
+    }
+    html[data-theme="dark"] .loading-box{
+      background: rgba(0,0,0,.42);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    html[data-theme="light"] .loading-box{
+      background: rgba(255,255,255,.92);
+      border:1px solid var(--border-soft);
+      box-shadow: 0 12px 28px rgba(17,61,23,.08);
+    }
+
+    /* الشعار (صورة) */
+    .loading-logo{
+      display:block; margin:0 auto 10px; height:56px; width:auto;
+      object-fit:contain;
+      image-rendering: -webkit-optimize-contrast;
+    }
+    /* لو عندك SVG أبيض/أخضر، اتركه كما هو. إن كانت PNG ملوّنة واحدة فقط،
+       بإمكانك تفعيل المرشّح التالي في الثيم الداكن لتبييضه (اختياري):
+       html[data-theme="dark"] .loading-logo.use-filter { filter: brightness(0) invert(1); }
+    */
+
+    /* العنوان/الوصف */
+    .loading-title{
+      margin:8px 0 4px; font-weight:800; letter-spacing:.6px; line-height:1; font-size: clamp(28px, 5.6vw, 36px);
+    }
+    .loading-sub{
+      margin:0 0 16px; opacity:.92; font-size: 15px;
+    }
+    html[data-theme="dark"] .loading-title, html[data-theme="dark"] .loading-sub{ color: var(--brand-white); }
+    html[data-theme="light"] .loading-title{ color: var(--brand-primary); }
+    html[data-theme="light"] .loading-sub{ color: #2a3b2c; }
+
+    /* شريط التقدم + النسبة */
+    .progress-wrap{
+      width:100%; height:10px; border-radius:999px; overflow:hidden; position:relative; margin: 0 auto 8px;
+      background: rgba(255,255,255,.18);
+    }
+    html[data-theme="light"] .progress-wrap{ background:#edf5e9; }
+    .progress-bar{ height:100%; width:0%; transition: width .25s ease; background: linear-gradient(90deg, #6fca3a, var(--brand-primary)); }
+    .progress-glow{
+      position:absolute; top:-6px; height:22px; width:18px; border-radius:10px; filter: blur(4px); opacity:.75; transform: translateX(0);
+      background: radial-gradient(10px 10px at 50% 50%, #b7f39a 0%, transparent 65%); transition: transform .25s ease; pointer-events:none;
+    }
+    .loading-percent{ font-variant-numeric: tabular-nums; font-weight:800; margin-bottom:4px; letter-spacing:.4px; font-size: 20px; }
+    html[data-theme="dark"] .loading-percent{ color:#fff; } html[data-theme="light"] .loading-percent{ color:#1d2b18; }
+    .loading-hint{ font-size:12px; opacity:.75; }
+    html[data-theme="dark"] .loading-hint{ color:#e6e6e6; } html[data-theme="light"] .loading-hint{ color:#3b4a36; }
+
+    /* سبينر بسيط (اختياري) */
+    .spinner{
+      margin: 10px auto 4px;
+      width:18px; height:18px; border-radius:50%;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: #6fca3a;
+      animation: spin 1s linear infinite;
+    }
+    html[data-theme="light"] .spinner{ border: 2px solid rgba(0,0,0,.15); border-top-color: #59a52c; }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce){ .spinner{ animation: none; } }
+
+    /* إخفاء الشاشة عند اكتمال التحميل */
+    .loaded #loading-screen{ opacity:0; visibility:hidden; }
+
+    /* بطاقات عامة */
+    .card{ border:1px solid var(--border-soft); border-radius:14px; box-shadow:0 6px 18px rgba(17,61,23,.06); }
+
+    @media (min-width:1200px){ .container{ max-width:1120px; } }
+  </style>
+</head>
+<body>
+
+  <!-- شاشة الإيقاف -->
+  <div id="loading-screen" role="status" aria-live="polite" aria-label="جارِ التحميل">
+    <!-- عناصر زخرفية ناعمة -->
+    <div class="blob one" aria-hidden="true"></div>
+    <div class="blob two" aria-hidden="true"></div>
+
+    <div class="loading-box">
+      <!-- الشعار: سيُبدَّل تلقائيًا حسب الثيم -->
+      <img
+        id="loadingLogo"
+        class="loading-logo"
+        src="{{ url_for('static', filename='images/logo1.png') }}"
+        alt="شعار جُملة" width="220" height="56"
+        data-dark="{{ url_for('static', filename='images/logo.png') }}"
+        data-light="{{ url_for('static', filename='images/logo.png') }}"
+      />
+
+      <h1 class="loading-title">جُملة</h1>
+      <p class="loading-sub">نُجهّز لك التجربة الآن…</p>
+
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-glow" id="progressGlow"></div>
+      </div>
+
+      <div class="loading-percent" id="loadingPercent">0%</div>
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loading-hint" id="loadingHint">تحميل الموارد الأساسية</div>
+    </div>
+  </div>
+
+  <!-- نافبار -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('public.index') }}">جُملة</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon">☰</span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.index') }}">الرئيسية</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.about') }}">عن المنصة</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.market') }}">سوق سندات البضائع</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.contact') }}">تواصل معنا</a></li>
+        </ul>
+        <div class="d-flex ms-auto">
+          {% if current_user.is_authenticated %}
+            {% if current_user.role == 'factory' %}
+              <a class="btn btn-outline-primary me-2" href="{{ url_for('factory.dashboard') }}">لوحة التحكم</a>
+            {% elif current_user.role == 'promoter' %}
+              <a class="btn btn-outline-primary me-2" href="{{ url_for('promoter.dashboard') }}">لوحة التحكم</a>
+            {% endif %}
+            <a class="btn btn-outline-primary me-2" href="#">الملف الشخصي</a>
+            <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">تسجيل الخروج</a>
+          {% else %}
+            <a class="btn btn-outline-primary me-2" href="{{ url_for('auth.register') }}">اشترك</a>
+            <a class="btn btn-primary" href="{{ url_for('auth.login') }}">تسجيل الدخول</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- رسائل الفلاش -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- محتوى الصفحات -->
+  <div class="container mt-4">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- الفوتر -->
+  <footer class="text-center text-lg-start mt-4">
+    <div class="text-center p-3">
+      © 2025 جميع الحقوق محفوظة لمنصة جُملة |
+      <a href="{{ url_for('public.terms') }}">الشروط والأحكام</a> |
+      <a href="{{ url_for('public.privacy') }}">الخصوصية</a>
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <script>
+    // تبديل الشعار تلقائيًا حسب الثيم (dark / light)
+    (function swapLogoByTheme(){
+      const html = document.documentElement;
+      const img  = document.getElementById('loadingLogo');
+      if(!img) return;
+      const darkSrc  = img.getAttribute('data-dark');
+      const lightSrc = img.getAttribute('data-light');
+      const theme = html.getAttribute('data-theme') || 'dark';
+      if(theme === 'dark' && darkSrc){ img.src = darkSrc; }
+      else if(theme === 'light' && lightSrc){ img.src = lightSrc; }
+      // في حال لم تتوفر النسخ، يبقى src الأصلي (logo1.png) كحل احتياطي.
+    })();
+
+    // عدّاد التقدّم (ناعم) + قفزة عند onload
+    (function(){
+      const screenEl  = document.getElementById('loading-screen');
+      const bar       = document.getElementById('progressBar');
+      const glow      = document.getElementById('progressGlow');
+      const percentEl = document.getElementById('loadingPercent');
+      const hintEl    = document.getElementById('loadingHint');
+
+      const hints = [
+        'تحميل الموارد الأساسية',
+        'تهيئة الجلسة الآمنة',
+        'تحضير الواجهة',
+        'جلب البيانات…'
+      ];
+
+      let p = 0;
+      let hintIdx = 0;
+      let done = false;
+
+      function setProgress(val){
+        p = Math.max(0, Math.min(100, val));
+        bar.style.width = p + '%';
+        glow.style.transform = 'translateX(calc(' + p + '% - 9px))';
+        percentEl.textContent = p.toFixed(0) + '%';
+        if(p >= 25 && p < 50) hintIdx = 1;
+        else if(p >= 50 && p < 75) hintIdx = 2;
+        else if(p >= 75 && p < 100) hintIdx = 3;
+        hintEl.textContent = hints[hintIdx];
+      }
+
+      const timer = setInterval(function(){
+        if(done) return;
+        const inc = p < 30 ? (Math.random()*3+1)
+                  : p < 70 ? (Math.random()*2+0.6)
+                  : (Math.random()*1+0.2);
+        setProgress(p + inc);
+        if(p >= 97){
+          setProgress(97);
+          clearInterval(timer);
+        }
+      }, 120);
+
+      window.addEventListener('load', function(){
+        done = true;
+        const anim = setInterval(function(){
+          const step = Math.max(1.5, (100 - p) * 0.25);
+          setProgress(p + step);
+          if(p >= 100){
+            setProgress(100);
+            clearInterval(anim);
+            document.body.classList.add('loaded');
+            setTimeout(()=> screenEl.remove(), 600);
+          }
+        }, 60);
+      });
+
+      // حماية في الاتصالات البطيئة
+      setTimeout(function(){
+        if(!done && p < 95){ setProgress(95); }
+      }, 6000);
+    })();
+  </script>
+</body>
+</html>

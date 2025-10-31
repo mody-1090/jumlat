@@ -1,0 +1,42 @@
+{% extends "shared/base.html" %}
+{% block title %}تسجيل الدخول – جُملة{% endblock %}
+
+{% block content %}
+{# لا نعيد تحميل Bootstrap هنا — محذوف #}
+
+<main class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="جُملة">
+      <h1 class="auth-title">تسجيل الدخول إلى منصة جُملة</h1>
+    </div>
+
+    <div class="auth-body">
+      {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <label class="form-label" for="email">البريد الإلكتروني</label>
+        {{ form.email(class="form-control mb-3", id="email", placeholder="example@mail.com") }}
+        {% if form.email.errors %}<small class="text-danger">{{ form.email.errors[0] }}</small>{% endif %}
+
+        <label class="form-label" for="password">كلمة المرور</label>
+        {{ form.password(class="form-control mb-3", id="password") }}
+        {% if form.password.errors %}<small class="text-danger">{{ form.password.errors[0] }}</small>{% endif %}
+
+        <div class="d-grid">
+          {{ form.submit(class="btn btn-primary") }}
+        </div>
+      </form>
+
+      <div class="text-center mt-3 auth-muted">
+        <a class="auth-link" href="{{ url_for('auth.forgot_password') }}">نسيت كلمة المرور؟</a><br>
+        ليس لديك حساب؟ <a class="auth-link" href="{{ url_for('auth.register') }}">أنشئ حسابك الآن</a>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

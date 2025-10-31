@@ -1,0 +1,12 @@
+{# templates/dashboard_admin/disputes.html #}
+{% extends "dashboard_admin/base.html" %}
+
+{% block title %}لوحة الإدارة – التظلمات{% endblock %}
+
+{# ✱✱ استعمل admin_content بدلاً من content ✱✱ #}
+{% block admin_content %}
+  <h2 class="mb-4">التظلمات</h2>
+
+  {# جدول التظلمات المفصول في جزء مستقل #}
+  {% include "dashboard_admin/_disputes_table.html" %}
+{% endblock %}

@@ -1,0 +1,111 @@
+{# templates/dashboard_factory/orders.html #}
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<h3 class="mb-4">طلبات السندات</h3>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#new">جديد ({{ new_orders|length }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#in_progress">تحت الإجراء ({{ in_progress_orders|length }})</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#done">مكتمل ({{ done_orders|length }})</a></li>
+  <li class="nav-item"><a class="nav-link" href="{{ url_for('factory.orders_promoters') }}">المروّجون</a></li>
+</ul>
+
+<div class="tab-content">
+  {% for status, orders in {
+    'new': new_orders,
+    'in_progress': in_progress_orders,
+    'done': done_orders
+  }.items() %}
+  <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="{{ status }}">
+
+    {# زر طباعة تحضير الطلبات يظهر فقط في تبويب "تحت الإجراء" #}
+    {% if status == 'in_progress' %}
+      <div class="mb-2 text-end">
+        <a class="btn btn-sm btn-secondary"
+           href="{{ url_for('factory.print_orders') }}?status=in_progress"
+           target="_blank">
+          <i class="bi bi-printer"></i> طباعة تحضير الطلبات
+        </a>
+      </div>
+    {% endif %}
+
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>السند</th>
+          <th>المنتج</th>
+          <th>الكمية</th>
+          <th>المروِّج</th>
+          <th>الحالة</th>
+          <th>إجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for o in orders %}
+        <tr>
+          <td>{{ o.voucher.code }}</td>
+          <td>{{ o.voucher.product }}</td>
+          <td>{{ o.quantity }}</td>
+          <td>
+            {% if o.promoter and o.promoter.user %}
+              {{ o.promoter.user.full_name or o.promoter.user.username }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            {% if o.status == 'new' %}
+              <span class="badge bg-secondary">جديد</span>
+            {% elif o.status == 'in_progress' %}
+              <span class="badge bg-warning text-dark">تحت الإجراء</span>
+            {% elif o.status == 'done' %}
+              <span class="badge bg-success">مكتمل</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('factory.update_order_status', order_id=o.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <select name="status" class="form-select form-select-sm d-inline w-auto me-1">
+                <option value="new"         {{ 'selected' if o.status == 'new' }}>جديد</option>
+                <option value="in_progress" {{ 'selected' if o.status == 'in_progress' }}>تحت الإجراء</option>
+                <option value="done"        {{ 'selected' if o.status == 'done' }}>مكتمل</option>
+              </select>
+              <button class="btn btn-sm btn-primary">حفظ</button>
+            </form>
+          </td>
+        </tr>
+
+        {# صف تفاصيل الطلب الكامل #}
+        <tr class="table-light">
+          <td colspan="6">
+            <div class="p-3 small lh-lg">
+              <strong>تفاصيل الطلب:</strong><br>
+              • رقم الطلب: #{{ o.id }}<br>
+              • التاريخ: {{ o.created_at.strftime('%Y/%m/%d - %H:%M') }}<br>
+              • الاسم: {{ o.customer_name or '—' }}<br>
+              • الجوال: {{ o.customer_phone or '—' }}<br>
+              • اسم المحل: {{ o.shop_name or '—' }}<br>
+              • السجل التجاري: {{ o.cr_number or '—' }}<br>
+              • الرقم الضريبي: {{ o.vat_number or '—' }}<br>
+              • المدينة: {{ o.city }}<br>
+              • العنوان: {{ o.address_detail or '—' }}<br>
+              {% if o.maps_link %}
+                • رابط الخرائط: <a href="{{ o.maps_link }}" target="_blank">فتح الخريطة</a><br>
+              {% endif %}
+              • الوقت المفضل للاستلام: {{ o.preferred_time or '—' }}<br>
+              • ملاحظات: {{ o.notes or '—' }}<br>
+              • رابط التتبّع: <a href="{{ url_for('public.order_status', token=o.tracking_token, _external=True) }}" target="_blank">عرض الحالة</a>
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="text-center">لا توجد طلبات في هذه الحالة.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

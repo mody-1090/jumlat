@@ -1,0 +1,139 @@
+{% extends "dashboard_admin/base.html" %}
+{% block admin_content %}
+<h2 class="mb-4">📑 فواتير العمولات{% if batch_id %} — دفعة رقم {{ batch_id }}{% endif %}</h2>
+
+{% if total == 0 %}
+  <div class="alert alert-info">لا توجد فواتير مسجَّلة.</div>
+{% else %}
+
+  <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+    <div class="text-muted">العدد الكلي: {{ total }} | صفحة {{ page }} / {{ total_pages }}</div>
+  </div>
+
+  {# تفريد بالاعتماد على رقم الفاتورة بعد "تطبيع قوي" لمنع أي تكرار شكلي #}
+  {% set uniq = namespace(seen_numbers={}) %}
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-light text-center">
+        <tr>
+          <th>رقم الفاتورة</th>
+          <th>المصنع</th>
+          {# حُذف عمود السند بناءً على طلبك #}
+          <th>الكمية</th>
+          <th>العمولة (ر.س)</th>
+          <th>التاريخ</th>
+          <th>تنزيل</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+          {# --- 1) جلب الرقم الخام --- #}
+          {% set num_raw = inv.invoice_number %}
+
+          {# --- 2) تطبيع قوي للرقم لمنع التكرار الشكلي --- #}
+          {% if num_raw %}
+            {% set num = (num_raw|string).strip().upper()
+                |replace(' ', '')
+                |replace('‐','-') |replace('-','-') |replace('–','-') |replace('—','-')
+                |replace('٠','0') |replace('١','1') |replace('٢','2') |replace('٣','3') |replace('٤','4')
+                |replace('٥','5') |replace('٦','6') |replace('٧','7') |replace('٨','8') |replace('٩','9')
+            %}
+          {% else %}
+            {% set num = None %}
+          {% endif %}
+
+          {% if num %}
+            {# أعرض أول ظهور فقط لهذا الرقم بعد التطبيع #}
+            {% if not uniq.seen_numbers.get(num) %}
+              {% set _ = uniq.seen_numbers.update({num: 1}) %}
+              <tr class="text-center">
+                <td>{{ num_raw }}</td>
+                <td>{{ inv.voucher.factory.name if inv.voucher and inv.voucher.factory else "—" }}</td>
+                <td>{{ inv.voucher.quantity if inv.voucher else "—" }}</td>
+                <td>{{ "%.2f"|format(inv.amount or 0) }}</td>
+                <td>{{ inv.created_at.strftime("%Y-%m-%d") if inv.created_at else "—" }}</td>
+                <td>
+                  {% if inv.pdf_url %}
+                    {% if inv.pdf_url.startswith('http://') or inv.pdf_url.startswith('https://') %}
+                      <a href="{{ inv.pdf_url }}" target="_blank" class="btn btn-sm btn-outline-primary">📥 تنزيل</a>
+                    {% else %}
+                      <a href="{{ url_for('static', filename=inv.pdf_url) }}" target="_blank" class="btn btn-sm btn-outline-primary">📥 تنزيل</a>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endif %}
+          {% else %}
+            {# بدون رقم فاتورة: نعرضه كما هو (أو احذف الصف إن رغبت) #}
+            <tr class="text-center">
+              <td>—</td>
+              <td>{{ inv.voucher.factory.name if inv.voucher and inv.voucher.factory else "—" }}</td>
+              <td>{{ inv.voucher.quantity if inv.voucher else "—" }}</td>
+              <td>{{ "%.2f"|format(inv.amount or 0) }}</td>
+              <td>{{ inv.created_at.strftime("%Y-%m-%d") if inv.created_at else "—" }}</td>
+              <td>
+                {% if inv.pdf_url %}
+                  {% if inv.pdf_url.startswith('http://') or inv.pdf_url.startswith('https://') %}
+                    <a href="{{ inv.pdf_url }}" target="_blank" class="btn btn-sm btn-outline-primary">📥 تنزيل</a>
+                  {% else %}
+                    <a href="{{ url_for('static', filename=inv.pdf_url) }}" target="_blank" class="btn btn-sm btn-outline-primary">📥 تنزيل</a>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ==== ترقيم الصفحات داخل التنسيق ==== #}
+  {% set window_size = 2 %}
+  {% set start_p = page - window_size if page - window_size > 1 else 1 %}
+  {% set end_p = page + window_size if page + window_size < total_pages else total_pages %}
+
+  <nav class="mt-3" aria-label="Invoices pagination">
+    <ul class="pagination justify-content-center mb-0">
+      <li class="page-item {% if page == 1 %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('admin.all_invoices', page=1, batch_id=batch_id) }}">الأولى</a>
+      </li>
+      <li class="page-item {% if page == 1 %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('admin.all_invoices', page=page-1 if page>1 else 1, batch_id=batch_id) }}">السابق</a>
+      </li>
+
+      {% if start_p > 1 %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('admin.all_invoices', page=1, batch_id=batch_id) }}">1</a></li>
+        {% if start_p > 2 %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endif %}
+
+      {% for p in range(start_p, end_p + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('admin.all_invoices', page=p, batch_id=batch_id) }}">{{ p }}</a>
+        </li>
+      {% endfor %}
+
+      {% if end_p < total_pages %}
+        {% if end_p < total_pages - 1 %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('admin.all_invoices', page=total_pages, batch_id=batch_id) }}">{{ total_pages }}</a></li>
+      {% endif %}
+
+      <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('admin.all_invoices', page=page+1 if page<total_pages else total_pages, batch_id=batch_id) }}">التالي</a>
+      </li>
+      <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('admin.all_invoices', page=total_pages, batch_id=batch_id) }}">الأخيرة</a>
+      </li>
+    </ul>
+  </nav>
+
+{% endif %}
+{% endblock %}

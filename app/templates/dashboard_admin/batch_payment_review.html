@@ -1,0 +1,52 @@
+{% extends "dashboard_admin/base.html" %}
+{% block admin_content %}
+<h2 class="mb-4">💰 دفعات العمولات قيد المراجعة</h2>
+
+{% if batches %}
+<table class="table table-bordered table-hover">
+  <thead class="table-light text-center">
+    <tr>
+      <th>#</th><th>المصنع</th><th>المنتج</th>
+      <th>عدد السندات</th><th>الكمية</th><th>العمولة (ر.س)</th>
+      <th>اسم الحساب المُحوَّل منه</th><th>إجراء</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for b in batches %}
+    <tr class="text-center">
+      <td>{{ loop.index }}</td>
+      <td>{{ b.vouchers[0].factory.name }}</td>
+      <td>{{ b.product }}</td>
+      <td>{{ b.vouchers|length }}</td>
+      <td>{{ b.total_quantity() }}</td>
+      <td>{{ b.total_commission() }}</td>
+      <td>{{ b.account_name }}</td>
+      <td class="text-nowrap">
+        <!-- ✔ اعتماد -->
+        <form class="d-inline" method="post"
+              action="{{ url_for('admin.batch_payment_review') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="batch_id" value="{{ b.id }}">
+          <input type="hidden" name="action" value="approve">
+          <button class="btn btn-success btn-sm">✔ اعتماد</button>
+        </form>
+
+        <!-- ✖ رفض -->
+        <form class="d-inline" method="post"
+              action="{{ url_for('admin.batch_payment_review') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="batch_id" value="{{ b.id }}">
+          <input type="hidden" name="action" value="reject">
+          <input type="text" name="note" class="form-control form-control-sm mt-1"
+                 placeholder="سبب الرفض" required>
+          <button class="btn btn-danger btn-sm mt-1">✖ رفض</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <div class="alert alert-info">لا توجد دفعات بحاجة لمراجعة حالياً.</div>
+{% endif %}
+{% endblock %}

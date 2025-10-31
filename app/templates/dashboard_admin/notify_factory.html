@@ -1,0 +1,46 @@
+{% extends "dashboard_admin/base.html" %}
+{% block title %}إرسال تنبيه لمصنع{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow p-4 mx-auto" style="max-width: 600px;">
+    <h4 class="mb-4 text-primary text-center">إرسال تنبيه لمصنع</h4>
+
+    {% if sent %}
+      <div class="alert alert-success text-center">✅ تم إرسال التنبيه بنجاح.</div>
+    {% endif %}
+
+    <form method="POST">
+      {{ form.hidden_tag() }}
+
+      <div class="mb-3">
+        {{ form.factory_id.label(class="form-label") }}
+        {{ form.factory_id(class="form-select") }}
+        {% for error in form.factory_id.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.message_type.label(class="form-label") }}
+        {{ form.message_type(class="form-select") }}
+        {% for error in form.message_type.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.custom_message.label(class="form-label") }}
+        {{ form.custom_message(class="form-control", rows="4") }}
+        {% for error in form.custom_message.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="d-grid">
+        {{ form.submit(class="btn btn-primary") }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

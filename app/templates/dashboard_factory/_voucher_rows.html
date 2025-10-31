@@ -1,0 +1,20 @@
+{# templates/dashboard_factory/_voucher_rows.html #}
+{% for v in rows %}
+<tr>
+  <td class="text-break">{{ v.code }}</td>
+  <td>{{ v.quantity }}</td>
+  <td>
+    {% set st = v.status %}
+    {% if   st == 'pending_admin_review' %}<span class="text-secondary">قيد المراجعة</span>
+    {% elif st == 'awaiting_payment' %}     <span class="text-warning">دفع عمولة</span>
+    {% elif st == 'payment_under_review' %} <span class="text-info">مراجعة دفع</span>
+    {% elif st == 'payment_rejected' %}     <span class="text-danger">مرفوض</span>
+    {% elif st == 'approved_for_market' %}  <span class="text-primary">جاهز للسوق</span>
+    {% elif st == 'activated' %}            <span class="text-success">مفعل</span>
+    {% elif st == 'used' %}                 <span class="text-success fw-bold">مستخدم</span>
+    {% else %}                              <span class="text-muted">{{ st }}</span>
+    {% endif %}
+  </td>
+  <td class="text-start">{{ v.admin_note or '—' }}</td>
+</tr>
+{% endfor %}

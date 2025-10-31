@@ -1,0 +1,56 @@
+{% extends 'shared/base.html' %}
+{% block title %}تفاصيل السند – جُملة{% endblock %}
+
+{% block content %}
+<h3 class="my-4">تفاصيل السند</h3>
+
+<div class="card mb-4 shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title text-primary">{{ voucher.product }}</h5>
+
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item"><strong>الكود:</strong> {{ voucher.code }}</li>
+      <li class="list-group-item"><strong>الكمية:</strong> {{ voucher.quantity }}</li>
+      <li class="list-group-item">
+          <strong>السعر الإجمالي:</strong>
+          {{ "%.2f"|format(voucher.total_price) }} ر.س
+          (شامل {{ (voucher.vat_rate*100)|int }}%)
+      </li>
+      <li class="list-group-item">
+          <strong>عمولة المروج:</strong> {{ "%.2f"|format(voucher.factory_commission) }} ر.س
+      </li>
+    </ul>
+
+    {# زر تحميل / معاينة PDF إذا كان الرابط موجوداً #}
+    {% if voucher.invoice_path %}
+      <a class="btn btn-outline-secondary mt-3"
+         href="{{ voucher.invoice_path }}"
+         target="_blank">
+         📄 تحميل / معاينة PDF
+      </a>
+    {% endif %}
+
+    <hr>
+
+    {# التفعيل الأول — يُسمح فقط للمروجين #}
+    {% if current_user.is_authenticated %}
+      {% if current_user.is_promoter %}
+        <form method="POST" action="{{ url_for('public.activate_voucher', code=voucher.code) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-success">
+            تفعيل وربط السند بحسابي
+          </button>
+        </form>
+      {% else %}
+        <div class="alert alert-info mt-2">
+          أنت مسجل كمصنع أو مسؤول؛ لا يمكنك تفعيل السند كمروج.
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="alert alert-warning mt-2">
+        يرجى <a href="{{ url_for('auth.login') }}">تسجيل الدخول</a> لتفعيل السند.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

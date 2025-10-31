@@ -1,0 +1,114 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<h3 class="mb-4">طلبات المروّجين (مكتملة)</h3>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link active" data-bs-toggle="tab" href="#pending">مستحق جديد ({{ pending|length }})</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#transferring">جاري التحويل ({{ transferring|length }})</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#transferred">تم التحويل ({{ transferred|length }})</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  {% set status_order = {'pending':0, 'transferring':1, 'transferred':2} %}
+  {% for status, items in {
+    'pending': pending,
+    'transferring': transferring,
+    'transferred': transferred
+  }.items() %}
+
+  <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="{{ status }}">
+
+    {% if status == 'transferring' %}
+      <div class="mb-3 text-end">
+        <a href="{{ url_for('factory.print_transfers') }}"
+           class="btn btn-outline-primary btn-sm" target="_blank">
+          <i class="bi bi-printer"></i> طباعة تحضير التحويلات
+        </a>
+      </div>
+    {% endif %}
+
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>المروّج</th>
+          <th>العمولة المستحقة</th>
+          {% if status != 'pending' %}
+          <th>بيانات التحويل</th>
+          {% endif %}
+          <th>حالة التحويل</th>
+          <th>إجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in items %}
+        <tr>
+          <td>{{ row.promoter.name }}</td>
+          <td>{{ "%.2f"|format(row.total_amount) }} ريال</td>
+
+          {% if status != 'pending' %}
+          <td>
+            <div><strong>الآيبان:</strong> {{ row.promoter.iban or "—" }}</div>
+            <div><strong>اسم صاحب الحساب:</strong> {{ row.promoter.account_holder_name or "—" }}</div>
+            <div><strong>اسم البنك:</strong> {{ row.promoter.bank_name or "—" }}</div>
+            {% if row.payout.receipt_path %}
+              <div class="mt-1">
+                <a href="{{ url_for('static', filename=row.payout.receipt_path) }}" target="_blank" class="btn btn-sm btn-outline-dark">
+                  عرض الإيصال
+                </a>
+              </div>
+            {% endif %}
+          </td>
+          {% endif %}
+
+          <td>
+            {% if row.payout.status == 'pending' %}
+              <span class="badge bg-secondary">مستحق جديد</span>
+            {% elif row.payout.status == 'transferring' %}
+              <span class="badge bg-warning text-dark">جاري التحويل</span>
+            {% elif row.payout.status == 'transferred' %}
+              <span class="badge bg-success">تم التحويل</span>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+
+          <td>
+            <form method="POST" action="{{ url_for('factory.update_payout_status', promoter_id=row.promoter.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+              <select name="status" class="form-select form-select-sm d-inline w-auto me-2" {% if row.payout.status == 'transferred' %}disabled{% endif %}>
+                {% for value, label in [
+                  ('pending', 'مستحق جديد'),
+                  ('transferring', 'جاري التحويل'),
+                  ('transferred', 'تم التحويل')
+                ] %}
+                  {% if status_order[value] >= status_order[row.payout.status] %}
+                    <option value="{{ value }}" {{ 'selected' if row.payout.status == value }}>{{ label }}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+
+              {% if row.payout.status != 'transferred' %}
+                <button class="btn btn-sm btn-primary">تحديث</button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center">لا توجد بيانات حالياً في هذه الحالة.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% endfor %}
+</div>
+
+{% endblock %}

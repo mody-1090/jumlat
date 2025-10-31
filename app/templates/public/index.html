@@ -1,0 +1,372 @@
+{# templates/public/index.html #}
+{% extends "shared/base.html" %}
+{% block title %}منصّة جُملة – توريد بلا رأس مال{% endblock %}
+
+{% block content %}
+<style>
+  /* نعرّف خريطة ألوان محلية تشير لألوان الهوية من base */
+  :root{
+    --primary:      var(--brand-primary, #59a52c);
+    --primaryDark:  #437d21;
+    --primaryLite:  #6fca3a;
+    --ink:          #0f1b14;
+    --mutedInk:     #2a3b2c;
+    --light:        #f7fbf5;
+    --softBorder:   #e6efdf;
+
+    /* ألوان شريط الـTicker */
+    --ticker-bg:    #eaf6e5;
+    --prod-bg:      #59a52c;
+    --units-bg:     #4ea02b;
+    --price-bg:     #469628;
+    --comm-bg:      #3f8d26;
+  }
+
+  body {
+    background: var(--light);
+    margin: 0;
+    color: var(--ink);
+  }
+
+  /* ===== Hero ===== */
+  #hero {
+    position: relative;
+    background:
+      radial-gradient(1000px 500px at 15% 0%, rgba(111,202,58,.18) 0%, transparent 60%),
+      radial-gradient(800px 400px at 90% 40%, rgba(89,165,44,.12) 0%, transparent 65%),
+      linear-gradient(135deg, #ffffff 0%, #f8fff4 100%);
+    color: var(--ink);
+    text-align: center;
+    padding: 6rem 1rem 5rem;
+    overflow: hidden;
+  }
+  #hero .brand-lockup{
+    display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:1rem;
+  }
+  #hero .brand-lockup img{
+    height:56px; width:auto; object-fit:contain;
+  }
+  html[data-theme="dark"] #hero{
+    background:
+      radial-gradient(1000px 500px at 15% 0%, rgba(255,255,255,.06) 0%, transparent 60%),
+      radial-gradient(800px 400px at 90% 40%, rgba(255,255,255,.05) 0%, transparent 65%),
+      linear-gradient(180deg, #0f0f0f, #0a0a0a);
+    color:#fff;
+  }
+  #hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3rem);
+    font-weight: 800;
+    margin: 0 0 .6rem;
+    letter-spacing:.3px;
+  }
+  #hero p {
+    font-size: 1.12rem;
+    max-width: 820px;
+    margin: auto;
+    opacity: .95;
+  }
+  #hero .cta-wrap{
+    margin-top: 1.4rem; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+  }
+  #hero .btn-brand{
+    background: var(--primary);
+    border:1px solid var(--primary);
+    color:#fff; padding:.78rem 1.2rem; border-radius:12px; font-weight:800;
+    transition: .2s ease;
+  }
+  #hero .btn-brand:hover{ background: var(--primaryDark); border-color: var(--primaryDark); }
+  #hero .btn-ghost{
+    background: #fff; border:1px solid var(--softBorder); color: var(--ink); padding:.78rem 1.2rem; border-radius:12px; font-weight:800;
+  }
+  html[data-theme="dark"] #hero .btn-ghost{ background: #121212; color:#fff; border-color:#2a2a2a; }
+  #hero .tick{
+    display:inline-flex; align-items:center; gap:8px; font-size:.95rem; color:var(--mutedInk); margin-top:.8rem;
+  }
+  html[data-theme="dark"] #hero .tick{ color:#e9e9e9; }
+
+  /* ===== Price Ticker ===== */
+  .price-ticker {
+    background: var(--ticker-bg);
+    border-top:1px solid var(--softBorder);
+    border-bottom:1px solid var(--softBorder);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: .65rem 0;
+    margin: 0;
+  }
+  .price-ticker marquee { display:block; }
+  .price-ticker span {
+    display: inline-block; margin-inline-end: 1.6rem; color: #0f1b14; font-weight: 700;
+  }
+  .price-ticker .ticker-chip{ color:#fff; padding: 2px 8px; border-radius: 6px; }
+  .ticker-product    { background: var(--prod-bg);  }
+  .ticker-units      { background: var(--units-bg); }
+  .ticker-price      { background: var(--price-bg); }
+  .ticker-commission { background: var(--comm-bg);  }
+
+  html[data-theme="dark"] .price-ticker{
+    background:#121212; border-color:#1e1e1e;
+  }
+  html[data-theme="dark"] .price-ticker span{ color:#fff; }
+
+  /* ===== Sections ===== */
+  .section { padding: 4rem 0; }
+  .section h2 {
+    text-align: center;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 2rem;
+    position: relative;
+    letter-spacing:.2px;
+  }
+  .section h2::after {
+    content: '';
+    display: block;
+    width: 74px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  html[data-theme="dark"] .section h2{ color:#79d34a; }
+  html[data-theme="dark"] .section h2::after{ background:#79d34a; }
+
+  /* ===== Icon-Box ===== */
+  .icon-box {
+    background: #fff;
+    border:1px solid var(--softBorder);
+    border-radius: 14px;
+    padding: 1.8rem 1.4rem;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(17,61,23,.06);
+    transition: transform .25s ease, box-shadow .25s ease;
+    height:100%;
+  }
+  .icon-box:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(17,61,23,.10);
+  }
+  .icon-box .ico{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:64px; height:64px; border-radius:14px; margin-bottom:.9rem;
+    background: linear-gradient(135deg, var(--primaryLite), var(--primary));
+    color:#fff; font-size:1.6rem; font-weight:900;
+  }
+  .icon-box h5 { font-weight: 800; margin-bottom: .4rem; }
+  .icon-box p  { color: var(--mutedInk); font-size: 1rem; margin:0; }
+  html[data-theme="dark"] .icon-box{ background:#0f0f0f; border-color:#1f1f1f; }
+  html[data-theme="dark"] .icon-box p{ color:#dcdcdc; }
+
+  /* ===== Example ===== */
+  .example-box {
+    background: #fff;
+    border:1px solid var(--softBorder);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(17,61,23,.06);
+    padding: 1.2rem 1.4rem;
+  }
+  html[data-theme="dark"] .example-box{ background:#0f0f0f; border-color:#1f1f1f; color:#ededed; }
+
+  /* ===== Video blocks ===== */
+  .video-grid .video-card{
+    background:#fff;
+    border:1px solid var(--softBorder);
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow: 0 8px 22px rgba(17,61,23,.06);
+    transition: transform .25s ease, box-shadow .25s ease;
+    height:100%;
+  }
+  .video-grid .video-card:hover{ transform: translateY(-6px); box-shadow:0 14px 32px rgba(17,61,23,.12); }
+  .video-card .video-wrap{
+    position:relative; aspect-ratio: 16 / 9; background:#000;
+  }
+  .video-card video, .video-card iframe{
+    position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+  }
+  .video-card .video-body{ padding: 16px 16px 18px; }
+  .video-card .badge{
+    background: var(--primary); font-weight:800; border-radius:999px; padding:.4rem .7rem;
+  }
+  .video-card h5{ margin:.6rem 0 .35rem; font-weight:900; }
+  .video-card p{ color:var(--mutedInk); margin:0; }
+  html[data-theme="dark"] .video-card{ background:#0f0f0f; border-color:#1f1f1f; }
+  html[data-theme="dark"] .video-card p{ color:#dcdcdc; }
+
+  /* ===== Certificate section spacing fix ===== */
+  #certificate .section-title{ margin-bottom:1.2rem; }
+
+  @media(max-width:768px) {
+    #hero h1 { font-size: 2.3rem; }
+    #hero p  { font-size: 1rem; }
+  }
+</style>
+
+<!-- ===== Hero ===== -->
+<section id="hero">
+  <div class="container">
+    <div class="brand-lockup">
+      <!-- تبديل الشعار حسب الثيم عبر CSS/JS في base -->
+      <picture>
+        <!-- يمكنك إضافة نسخة SVG إن توفرت -->
+        <source srcset="{{ url_for('static', filename='images/logo.png') }}" media="(prefers-color-scheme: dark)">
+<img src="{{ url_for('static', filename='images/logo.svg') }}" 
+     alt="شعار جُملة" 
+     class="brand-logo"
+     width="220" height="56">
+      </picture>
+      <span class="visually-hidden">جُملة</span>
+    </div>
+
+    <h1>منصّة جُملة</h1>
+    <p>حلّ توريد ذكي يربط <strong>المصانع</strong> بالمروّجين والعملاء دون رأس مال، مع دفع عند الاستلام (COD) وسند يُستخدم مرّتين: <em>تفعيل ↠ طلب</em>.</p>
+
+    <div class="cta-wrap">
+      <a href="{{ url_for('public.market') }}" class="btn btn-brand">تصفّح سوق السندات</a>
+      <a href="{{ url_for('public.about') }}" class="btn btn-ghost">تعرّف على آلية العمل</a>
+    </div>
+    <div class="tick">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      منصة بلا مخزون مسبق • عمولة شفافة • فواتير ضريبية متوافقة
+    </div>
+  </div>
+</section>
+
+{# ===== Price Ticker ===== #}
+{% if vouchers %}
+  <div class="price-ticker">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+      {% for product, items in vouchers|groupby('product') %}
+        {% set v = items[0] %}
+        <span>
+          <span class="ticker-chip ticker-product">المنتج: {{ product }}</span>
+          <span class="ticker-chip ticker-units">الوحدات/كرتون: {{ v.quantity }}</span>
+          <span class="ticker-chip ticker-price">السعر: {{ v.total_price|round(2) }} ر.س</span>
+          <span class="ticker-chip ticker-commission">عمولة المروّج: {{ v.factory_commission|round(2) }} ر.س</span>
+        </span>
+      {% endfor %}
+    </marquee>
+  </div>
+{% endif %}
+
+<!-- فاصل زخرفي -->
+<div style="height:56px; background:url('{{ url_for('static', filename='images/creative-divider.svg') }}') center/cover no-repeat;"></div>
+
+<!-- ===== How It Works ===== -->
+<section class="section container">
+  <h2>كيف تعمل منصّة السندات؟</h2>
+  <div class="row gy-4">
+    <div class="col-md-4">
+      <div class="icon-box h-100">
+        <div class="ico">م</div>
+        <h5>للمروِّج</h5>
+        <p class="mb-2">
+          ◂ تحصل على <strong>سند بضائع</strong> بلا تكلفة.<br>
+          ◂ تعرضه للعميل أو تطبعه PDF مع QR.<br>
+          ◂ عند الطلب أو المسح تُسجَّل عمولتك تلقائيًا.
+        </p>
+        <p class="text-success fw-bold m-0">لا رأس مال أو مخزون.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="icon-box h-100">
+        <div class="ico">ع</div>
+        <h5>للعميل</h5>
+        <p class="mb-2">
+          ◂ يملأ الطلب (يدويًا أو عبر QR).<br>
+          ◂ يستلم البضاعة من المصنع.<br>
+          ◂ يدفع <em>COD</em>.
+        </p>
+        <p class="fw-bold m-0" style="color:var(--primary);">لا خطر الدفع المسبق.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="icon-box h-100">
+        <div class="ico">ص</div>
+        <h5>للمصنع</h5>
+        <p class="mb-2">
+          ◂ يستلم الطلبات الجاهزة.<br>
+          ◂ يشحن ويحصّل عند التسليم.<br>
+          ◂ يحوِّل العمولة ويحتفظ بالربح.
+        </p>
+        <p class="text-warning fw-bold m-0">زيادة مبيعات بلا تسويق إضافي.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="example-box mt-5">
+    <h5 class="fw-bold mb-3">مثال عملي مختصر</h5>
+    <ol class="ps-3 mb-0">
+      <li>عميل يحتاج 10 كراتين عصير.</li>
+      <li>المروِّج يختار سند «عصير ×10» ويطبع QR.</li>
+      <li>المصنع يشحن والعميل يدفع عند الاستلام.</li>
+      <li>تُسجَّل عمولة المروِّج وتُحوَّل بعد التأكيد.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ===== Video Tutorials ===== -->
+<section class="section container">
+  <h2>شروحات بالفيديو</h2>
+  <div class="row gy-4 video-grid">
+    <!-- فيديو المصنع -->
+    <div class="col-md-6">
+      <div class="video-card">
+        <div class="video-wrap">
+          <!-- ضع فيديوك هنا (MP4) أو استبدل بـ iframe يوتيوب -->
+          <video controls preload="metadata" poster="{{ url_for('static', filename='images/factory-thumb.jpg') }}">
+            <source src="{{ url_for('static', filename='videos/factory-tutorial.mp4') }}" type="video/mp4">
+            متصفحك لا يدعم تشغيل الفيديو.
+          </video>
+        </div>
+        <div class="video-body">
+          <span class="badge">للمصنع</span>
+          <h5>شرح: إصدار السند واستقبال طلبات البيع</h5>
+          <p>تعرّف كيف تُصدر سندًا بخطوات بسيطة، وتستقبل الطلبات الجاهزة، وتُحدّث حالة التنفيذ حتى التحصيل.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- فيديو المروّج -->
+    <div class="col-md-6">
+      <div class="video-card">
+        <div class="video-wrap">
+          <video controls preload="metadata" poster="{{ url_for('static', filename='images/promoter-thumb.jpg') }}">
+            <source src="{{ url_for('static', filename='videos/promoter-tutorial.mp4') }}" type="video/mp4">
+            متصفحك لا يدعم تشغيل الفيديو.
+          </video>
+        </div>
+        <div class="video-body">
+          <span class="badge">للمروّج</span>
+          <h5>شرح: استخدام السند وتسجيل العمولة</h5>
+          <p>خطوات مشاركة السند مع العميل، الطباعة مع QR، وآلية احتساب العمولة تلقائيًا بعد الطلب أو المسح.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- روابط سريعة تحت الفيديوهات -->
+  <div class="text-center mt-4">
+    <a href="{{ url_for('public.market') }}" class="btn btn-brand">ابدأ بإصدار سند الآن</a>
+    <a href="{{ url_for('public.about') }}" class="btn btn-ghost">قراءة الدليل الكامل</a>
+  </div>
+</section>
+
+<!-- ===== Certificates ===== -->
+<section id="certificate" class="section">
+  <div class="container">
+    <h2 class="section-title">الاعتماد والشهادات</h2>
+    <div class="row align-items-center">
+      <div class="col-md-6 text-center mb-4 mb-md-0">
+        <img src="{{ url_for('static', filename='images/certificate.jpg') }}" alt="شهادة اعتماد" class="img-fluid rounded shadow-lg">
+      </div>
+      <div class="col-md-6">
+        <ul class="fs-5 list-unstyled m-0">
+          <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>موثَّقة لدى مركز الأعمال السعودي</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i>متوافقة مع أنظمة التجارة الإلكترونيّة والفوترة الضريبية</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

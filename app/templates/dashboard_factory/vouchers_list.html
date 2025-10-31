@@ -1,0 +1,155 @@
+{# templates/dashboard_factory/vouchers_list.html #}
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<h2 class="mb-4">📦 سندات المصنع (مجمَّعة حسب المنتج)</h2>
+
+{% if groups and groups|length > 0 %}
+  {% set ns = namespace(idx=0) %}
+
+  <div class="table-responsive shadow rounded-3 overflow-hidden">
+    <table class="table table-bordered align-middle text-center mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:1%"></th>
+          <th>الرمز</th>
+          <th>الكمية</th>
+          <th>الحالة</th>
+          <th>ملاحظات الإدارة</th>
+        </tr>
+      </thead>
+
+      <tbody class="table-group-divider">
+      {% for g in groups %}
+        {% set ns.idx = ns.idx + 1 %}
+        {% set gid = 'g' ~ ns.idx %}
+
+        {# سطر عنوان المنتج #}
+        <tr class="bg-primary bg-opacity-10 fw-bold group-row" data-gid="{{ gid }}" style="cursor:pointer">
+          <td>
+            <button type="button" class="btn btn-sm btn-outline-primary toggle-btn" data-gid="{{ gid }}">▼</button>
+          </td>
+          <td class="text-start" colspan="4">
+            {{ g.product }}
+            <span class="badge bg-primary ms-2">{{ g.count }} سند</span>
+            <small class="text-muted ms-3">إجمالي الكمية: {{ g.total_qty }}</small>
+          </td>
+        </tr>
+
+        {# الصفوف التفصيلية (الدفعة الأولى فقط) #}
+        <tr class="detail-row d-none" data-gid="{{ gid }}">
+          <td colspan="5" class="p-0">
+            <div class="table-responsive m-0">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>الرمز</th>
+                    <th>الكمية</th>
+                    <th>الحالة</th>
+                    <th class="text-start">ملاحظات الإدارة</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-{{ gid }}">
+                  {# ★ نرندر الصفوف الابتدائية #}
+                  {% include 'dashboard_factory/_voucher_rows.html' with context %}
+                  {# ↑ القالب الجزئي يحتاج متغير rows موجود. نوفّره هنا: #}
+                  {% set rows = g.rows %}
+                  {% include 'dashboard_factory/_voucher_rows.html' %}
+                </tbody>
+                {% if g.remaining > 0 %}
+                <tfoot>
+                  <tr>
+                    <td colspan="4" class="text-center">
+                      <button
+                        class="btn btn-outline-secondary btn-sm show-more"
+                        data-product="{{ g.product }}"
+                        data-gid="{{ gid }}"
+                        data-offset="{{ LIMIT }}"   {# ★ البداية بعد الدفعة الأولى #}
+                        data-limit="{{ LIMIT }}">
+                        عرض المزيد ({{ g.remaining }}+)
+                      </button>
+                    </td>
+                  </tr>
+                </tfoot>
+                {% endif %}
+              </table>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // ★ تفويض الحدث: فتح/طي المجموعات
+    document.addEventListener('click', function(e) {
+      const toggler = e.target.closest('.group-row, .toggle-btn');
+      if (!toggler) return;
+      const gid = toggler.dataset.gid || toggler.getAttribute('data-gid');
+      if (!gid) return;
+
+      const rows = document.querySelectorAll(`.detail-row[data-gid="${gid}"]`);
+      rows.forEach(r => r.classList.toggle('d-none'));
+
+      const btn  = document.querySelector(`.toggle-btn[data-gid="${gid}"]`);
+      if (btn && rows.length) btn.textContent = rows[0].classList.contains('d-none') ? '▼' : '▲';
+    }, { passive: true });
+
+    // ★ زر "عرض المزيد" — تحميل كسول من السيرفر
+    document.addEventListener('click', async function(e) {
+      const btn = e.target.closest('.show-more');
+      if (!btn) return;
+
+      const product = btn.dataset.product;
+      const gid     = btn.dataset.gid;
+      const offset  = parseInt(btn.dataset.offset, 10) || 0;
+      const limit   = parseInt(btn.dataset.limit, 10)  || 20;
+
+      // منع النقرات المتكررة أثناء التحميل
+      if (btn.disabled) return;
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = '... جاري التحميل';
+
+      try {
+        const url = new URL('{{ url_for("factory.vouchers_list_more") }}', window.location.origin);
+        url.searchParams.set('product', product);
+        url.searchParams.set('offset', offset.toString());
+        const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+        const html = await resp.text();
+
+        // إدراج الصفوف الجديدة
+        const tbody = document.getElementById('tbody-' + gid);
+        if (tbody) {
+          const tmp = document.createElement('tbody');
+          tmp.innerHTML = html;
+          // نقل <tr> فقط
+          Array.from(tmp.children).forEach(tr => tbody.appendChild(tr));
+        }
+
+        // تحديث الإزاحة
+        btn.dataset.offset = (offset + limit).toString();
+
+        // إذا رجعت دفعة أقل من limit → ما فيه المزيد
+        const received = (html.match(/<tr/g) || []).length;
+        if (received < limit) {
+          btn.remove(); // لا مزيد
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'عرض المزيد';
+        }
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = originalText;
+        alert('تعذر تحميل المزيد، حاول لاحقًا.');
+      }
+    });
+  </script>
+
+{% else %}
+  <div class="alert alert-info">لا توجد سندات بعد.</div>
+{% endif %}
+
+{% endblock %}

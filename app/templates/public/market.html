@@ -1,0 +1,174 @@
+{# templates/public/market.html #}
+{% extends "shared/base.html" %}
+{% block title %}سوق السندات – جُملة{% endblock %}
+
+{% block content %}
+<h2 class="my-4 text-center">سوق السندات المتاحة</h2>
+
+{# ─── شريط المعلومات (Ticker) باللون الأخضر ─── #}
+{% if vouchers %}
+  <div class="bg-success text-white py-2 mb-3">
+    <marquee behavior="scroll" direction="left" scrollamount="5">
+      {% for product, items in vouchers|groupby('product') %}
+        {% set v = items[0] %}
+        <span style="margin-right:1rem;">
+          <strong>المنتج:</strong> {{ product }} |
+          <strong>الوحدات:</strong> {{ v.quantity }} |
+          <strong>السعر:</strong> {{ v.total_price|round(2) }} ر.س |
+          <strong>عمولة المروج:</strong> {{ v.factory_commission|round(2) }} ر.س
+        </span>
+      {% endfor %}
+    </marquee>
+  </div>
+{% endif %}
+
+{% if vouchers %}
+  {% set ns = namespace(fidx=0) %}
+  {% for factory, items in vouchers|groupby('factory.name') %}
+    {% set ns.fidx = ns.fidx + 1 %}
+    {% set fgid = 'fac' ~ ns.fidx %}
+
+    <div class="card mb-3 shadow-sm">
+      <div class="card-header bg-primary bg-opacity-10 fw-bold d-flex justify-content-between align-items-center"
+           data-fgid="{{ fgid }}" style="cursor:pointer">
+        <span>
+          🏭 {{ factory }}
+          <span class="badge bg-primary ms-2">{{ items|length }} سند</span>
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-primary toggle-f" data-fgid="{{ fgid }}">▼</button>
+      </div>
+
+      <div class="card-body d-none" id="{{ fgid }}">
+        <ul class="nav nav-pills mb-3" id="pills-{{ fgid }}" role="tablist">
+          {% set ns.pid = 0 %}
+          {% for product, prod_items in items|groupby('product') %}
+            {% set ns.pid = ns.pid + 1 %}
+            {% set tid = fgid ~ '-tab' ~ ns.pid %}
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if loop.first %}active{% endif %}"
+                      id="{{ tid }}-pill"
+                      data-bs-toggle="pill"
+                      data-bs-target="#{{ tid }}"
+                      type="button" role="tab">
+                {{ product }} <span class="badge bg-secondary">{{ prod_items|length }}</span>
+              </button>
+            </li>
+          {% endfor %}
+        </ul>
+
+        <div class="tab-content" id="pills-{{ fgid }}Content">
+          {% set ns.pid = 0 %}
+          {% for product, prod_items in items|groupby('product') %}
+            {% set ns.pid = ns.pid + 1 %}
+            {% set tid = fgid ~ '-tab' ~ ns.pid %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}"
+                 id="{{ tid }}" role="tabpanel">
+
+              {% set LIMIT = 20 %}
+              {% set total = prod_items|length %}
+
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle small mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>الكود</th>
+                      <th>الكمية</th>
+                      <th>المدينة</th>
+                      <th>السعر الإجمالي<br>(شامل الضريبة)</th>
+                      <th>عمولة المروج</th>
+                      <th>إجراء</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for v in prod_items %}
+                      {% set cls = loop.index0 >= LIMIT and 'd-none extra-row' or '' %}
+                      <tr class="{{ cls }}">
+                        <td>{{ v.code }}</td>
+                        <td>{{ v.quantity }}</td>
+                        <td>{{ v.city }}</td>
+                        <td>
+                          <span style="background:#fff3e0; padding:0 .3rem; border-radius:3px;">
+                            {{ v.total_price|round(2) }} ر.س
+                          </span>
+                        </td>
+                        <td>
+                          <span style="background:#e8f5e9; padding:0 .3rem; border-radius:3px;">
+                            {{ v.factory_commission|round(2) }} ر.س
+                          </span>
+                        </td>
+                        <td>
+                          <a href="{{ url_for('public.voucher_details', code=v.code) }}"
+                             class="btn btn-sm btn-outline-primary">عرض / سحب</a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                    {% if total > LIMIT %}
+                      <tr>
+                        <td colspan="6" class="text-center">
+                          <button class="btn btn-outline-secondary btn-sm show-more-btn"
+                                  data-limit="{{ LIMIT }}">
+                            عرض المزيد ({{ total - LIMIT }}+)
+                          </button>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="alert alert-info text-center">لا توجد سندات متاحة حاليًا</div>
+{% endif %}
+
+<script>
+  // طي/إظهار البطاقات
+  function toggleGroup(gid) {
+    const body = document.getElementById(gid);
+    const btn  = document.querySelector('.toggle-f[data-fgid="' + gid + '"]');
+    if (!body || !btn) return;
+    body.classList.toggle('d-none');
+    btn.textContent = body.classList.contains('d-none') ? '▼' : '▲';
+  }
+  document.querySelectorAll('.toggle-f').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.preventDefault(); e.stopPropagation();
+      toggleGroup(btn.dataset.fgid);
+    });
+  });
+  document.querySelectorAll('.card-header[data-fgid]').forEach(h=>{
+    h.addEventListener('click', e=>{
+      if(e.target.closest('.toggle-f')) return;
+      toggleGroup(h.dataset.fgid);
+    });
+  });
+
+  // "عرض المزيد"/"إخفاء" بخطوات 20
+  document.querySelectorAll('.show-more-btn').forEach(btn=>{
+    const limit = parseInt(btn.dataset.limit,10);
+    btn.addEventListener('click',()=>{
+      const rows = Array.from(btn.closest('table').querySelectorAll('tr.extra-row'));
+      if(!btn.classList.contains('expanded')){
+        let hidden = rows.filter(r=>r.classList.contains('d-none'));
+        const toShow = hidden.slice(0,limit);
+        toShow.forEach(r=>r.classList.remove('d-none'));
+        hidden = rows.filter(r=>r.classList.contains('d-none'));
+        if(hidden.length>0) btn.textContent = `عرض المزيد (${hidden.length}+)`;
+        else{ btn.textContent='إخفاء'; btn.classList.add('expanded'); }
+      } else {
+        rows.forEach(r=>r.classList.add('d-none'));
+        const first = rows.slice(0,limit);
+        first.forEach(r=>r.classList.remove('d-none'));
+        const rem = rows.length - limit;
+        btn.classList.remove('expanded');
+        btn.textContent = rem>0 ? `عرض المزيد (${rem}+)` : 'عرض المزيد';
+      }
+    });
+  });
+</script>
+{% endblock %}

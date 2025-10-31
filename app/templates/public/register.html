@@ -1,0 +1,110 @@
+{% extends "shared/base.html" %}
+{% block title %}إنشاء حساب – جُملة{% endblock %}
+
+{% block content %}
+{# لا نعيد تحميل Bootstrap هنا #}
+
+<main class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="جُملة">
+      <h1 class="auth-title">إنشاء حساب جديد</h1>
+    </div>
+
+    <div class="auth-body">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <!-- بيانات أساسية -->
+        <label class="form-label" for="username">اسم المستخدم</label>
+        {{ form.username(class="form-control mb-3", id="username", placeholder="اسم المستخدم") }}
+        {% for e in form.username.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+        <label class="form-label" for="email">البريد الإلكتروني</label>
+        {{ form.email(class="form-control mb-3", id="email", placeholder="example@mail.com") }}
+        {% for e in form.email.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+        <label class="form-label" for="phone">رقم الجوال</label>
+        {{ form.phone(class="form-control mb-3", id="phone", placeholder="05xxxxxxxx") }}
+        {% for e in form.phone.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+        <label class="form-label" for="password">كلمة المرور</label>
+        {{ form.password(class="form-control mb-3", id="password") }}
+        {% for e in form.password.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+        <label class="form-label" for="confirm">تأكيد كلمة المرور</label>
+        {{ form.confirm(class="form-control mb-3", id="confirm") }}
+        {% for e in form.confirm.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+        <label class="form-label" for="role">الصفة</label>
+        {{ form.role(class="form-select mb-4", id="role") }}
+        {% for e in form.role.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+        <!-- حقول خاصة بالمصنع -->
+        <div id="factory-fields" style="display:none;">
+          <h5 class="mt-3">بيانات المصنع</h5>
+
+          <label class="form-label" for="factory_name">اسم المصنع</label>
+          {{ form.factory_name(class="form-control mb-3", id="factory_name") }}
+          {% for e in form.factory_name.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+          <label class="form-label" for="factory_contact">اسم المسؤول</label>
+          {{ form.factory_contact(class="form-control mb-3", id="factory_contact") }}
+          {% for e in form.factory_contact.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+          <label class="form-label" for="factory_phone">جوال المصنع</label>
+          {{ form.factory_phone(class="form-control mb-3", id="factory_phone") }}
+          {% for e in form.factory_phone.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+          <label class="form-label" for="cr_number">رقم السجل التجاري</label>
+          {{ form.cr_number(class="form-control mb-3", id="cr_number") }}
+          {% for e in form.cr_number.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+          <label class="form-label" for="vat_number">الرقم الضريبي</label>
+          {{ form.vat_number(class="form-control mb-3", id="vat_number") }}
+          {% for e in form.vat_number.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+        </div>
+
+        <!-- حقول خاصة بالمروّج -->
+        <div id="promoter-fields" style="display:none;">
+          <h5 class="mt-3">بيانات الحساب البنكي</h5>
+
+          <label class="form-label" for="account_holder_name">اسم صاحب الحساب</label>
+          {{ form.account_holder_name(class="form-control mb-3", id="account_holder_name") }}
+          {% for e in form.account_holder_name.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+          <label class="form-label" for="bank_name">اسم البنك</label>
+          {{ form.bank_name(class="form-control mb-3", id="bank_name") }}
+          {% for e in form.bank_name.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+
+          <label class="form-label" for="iban">رقم الآيبان</label>
+          {{ form.iban(class="form-control mb-3", id="iban", placeholder="SA****************") }}
+          {% for e in form.iban.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+        </div>
+
+        <div class="d-grid">
+          {{ form.submit(class="btn btn-primary") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+  // إظهار / إخفاء الحقول حسب الدور
+  const roleSelect  = document.getElementById("role");
+  const factoryBox  = document.getElementById("factory-fields");
+  const promoterBox = document.getElementById("promoter-fields");
+
+  function toggleRoleFields(){
+    const isFactory = roleSelect.value === 'factory';
+    factoryBox.style.display  = isFactory ? 'block' : 'none';
+    promoterBox.style.display = isFactory ? 'none'  : 'block';
+  }
+
+  if (roleSelect) {
+    roleSelect.addEventListener('change', toggleRoleFields);
+    toggleRoleFields(); // عند التحميل الأوّل
+  }
+</script>
+{% endblock %}

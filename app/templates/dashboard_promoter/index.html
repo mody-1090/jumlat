@@ -1,0 +1,68 @@
+{% extends "dashboard_promoter/base.html" %}
+{% block promoter_content %}
+
+<h3 class="mb-4">مرحباً {{ current_user.username }} 👋</h3>
+
+<div class="row g-3">
+
+  <!-- بطاقة السندات -->
+  <div class="col-md-4">
+    <div class="card border-primary h-100">
+      <div class="card-body">
+        <h5 class="card-title">إحصاءات السندات</h5>
+        <p class="mb-1">الإجمالي: <strong>{{ total_vouchers }}</strong></p>
+        <p class="mb-1 text-success">مفعَّلة: <strong>{{ active_vouchers }}</strong></p>
+        <p class="mb-0 text-muted">مستخدمة: <strong>{{ used_vouchers }}</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- بطاقة الطلبات -->
+  <div class="col-md-4">
+    <div class="card border-warning h-100">
+      <div class="card-body">
+        <h5 class="card-title">الطلبات</h5>
+        <p class="mb-1">الإجمالي: <strong>{{ total_orders }}</strong></p>
+        <p class="mb-1 text-danger">قيد التنفيذ: <strong>{{ pending_orders }}</strong></p>
+        <p class="mb-0 text-success">مكتملة: <strong>{{ done_orders }}</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- بطاقة الأرباح -->
+  <div class="col-md-4">
+    <div class="card border-success h-100">
+      <div class="card-body">
+        <h5 class="card-title">الأرباح (ريال)</h5>
+        <p class="mb-1">محتملة: <strong>{{ "%.2f"|format(potential_sum) }}</strong></p>
+        <p class="mb-1">مؤكَّدة: <strong>{{ "%.2f"|format(confirmed_sum) }}</strong></p>
+        <p class="mb-0">محوَّلة/قيد التحويل: <strong>{{ "%.2f"|format(converted_sum) }}</strong></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<hr class="my-4">
+
+<!-- دليل استخدام سريع -->
+<h4 class="mb-3">كيف تستخدم لوحة المروّج؟</h4>
+<ol class="list-group list-group-numbered">
+  <li class="list-group-item">
+    <strong>تفعيل السند</strong> – ادخل صفحة <em>السوق</em>، امسح QR أو أدخل الكود واضغط «تفعيل».
+  </li>
+  <li class="list-group-item">
+    <strong>إنشاء طلب</strong> – بعد التفعيل يظهر زر «إنشاء طلب» ضمن «سنداتي». املأ بيانات العميل وأكّد.
+  </li>
+  <li class="list-group-item">
+    <strong>متابعة الطلب</strong> – الطلب ينتقل إلى <span class="badge bg-success">مكتمل</span> بعد موافقة المصنع.
+  </li>
+  <li class="list-group-item">
+    <strong>مراجعة الأرباح</strong> – ستجدها في صفحة «أرباحي» موزّعة إلى محتملة، مؤكَّدة، ومحوَّلة.
+  </li>
+  <li class="list-group-item">
+    <strong>تحديث بيانات البنك</strong> – أدخل الآيبان واسم صاحب الحساب في «الإعدادات» لتسريع عمليات التحويل.
+  </li>
+</ol>
+
+{% endblock %}

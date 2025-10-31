@@ -1,0 +1,23 @@
+<table class="table table-striped mt-3">
+  <thead class="table-light"><tr>
+    <th>#</th><th>السند</th><th>المروج</th><th>الحالة</th><th>ملاحظة الإدارة</th><th>تاريخ الإنشاء</th><th>إجراءات</th>
+  </tr></thead>
+  <tbody>
+    {% for d in disputes %}
+    <tr>
+      <td>{{ d.id }}</td>
+      <td>{{ d.voucher.code }}</td>
+      <td>{{ d.promoter.name }}</td>
+      <td>
+        {% if d.status=='pending' %}بانتظار{% elif d.status=='approved' %}مقبول{% else %}مرفوض{% endif %}
+      </td>
+      <td>{{ d.admin_note or "-" }}</td>
+      <td>{{ d.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+      <td>
+        <a href="{{ url_for('admin.review_dispute', dispute_id=d.id) }}"
+           class="btn btn-sm btn-primary">مراجعة</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

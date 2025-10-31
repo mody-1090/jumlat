@@ -1,0 +1,67 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<h2 class="mb-4">📑 فواتير العمولات</h2>
+
+{% if invoices %}
+  {% set uniq = namespace(seen_numbers={}) %}
+
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th>رقم الفاتورة</th>
+          <th>تاريخ الإصدار</th>
+          <th>الملف</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+          {% set num = (inv.invoice_number|string).strip().upper() if inv.invoice_number else None %}
+          {% if num %}
+            {% if not uniq.seen_numbers.get(num) %}
+              {% set _ = uniq.seen_numbers.update({num: 1}) %}
+              <tr>
+                <td>{{ inv.invoice_number }}</td>
+                <td>{{ inv.created_at.strftime('%Y/%m/%d') if inv.created_at else "—" }}</td>
+                <td>
+                  {% if inv.pdf_url %}
+                    {% if inv.pdf_url.startswith('http://') or inv.pdf_url.startswith('https://') %}
+                      <a href="{{ inv.pdf_url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                        📄 عرض الفاتورة
+                      </a>
+                    {% else %}
+                      <a href="{{ url_for('static', filename=inv.pdf_url) }}" target="_blank" class="btn btn-sm btn-outline-success">
+                        📄 عرض الفاتورة
+                      </a>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-muted">غير متوفر</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endif %}
+          {% else %}
+            <tr>
+              <td>—</td>
+              <td>{{ inv.created_at.strftime('%Y/%m/%d') if inv.created_at else "—" }}</td>
+              <td>
+                {% if inv.pdf_url %}
+                  <a href="{{ inv.pdf_url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                    📄 عرض الفاتورة
+                  </a>
+                {% else %}
+                  <span class="text-muted">غير متوفر</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">لا توجد فواتير عمولات حتى الآن.</div>
+{% endif %}
+
+{% endblock %}

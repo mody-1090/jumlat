@@ -1,0 +1,75 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<!-- ✅ معلومات الدفع الثابتة -->
+<div class="card shadow-sm p-4 mb-4">
+  <h5 class="mb-3">معلومات الدفع:</h5>
+  <ul class="mb-0">
+    <li><strong>التحويل لصالح:</strong> منصة جُملة</li>
+    <li><strong>البنك:</strong> مصرف الراجحي</li>
+    <li><strong>اسم الحساب:</strong> شركة محمد حسن محمد الحربي لتجارة الجملة والتجزئة</li>
+    <!-- ★ تم تحديث رقم الحساب والآيبان بحسب شهادة الآيبان -->
+    <li><strong>رقم الحساب:</strong> <span dir="ltr">528000010006085785440</span></li>  <!-- ★ -->
+    <li><strong>رقم الآيبان:</strong>  <span dir="ltr">SA3680000528608015785440</span></li> <!-- ★ -->
+    <li class="mt-2 text-success">
+      <strong>المبلغ المطلوب دفعه:</strong>
+      {{ batch.total_commission() }} ريال سعودي
+    </li>
+  </ul>
+
+
+    <div class="col-md-5 text-center"> <!-- ★ -->
+      <h6 class="text-muted mb-2">رمز التحويل السريع (QR)</h6> <!-- ★ -->
+      <img
+        src="{{ url_for('static', filename='images/iban_qr.png') }}"
+        alt="رمز QR للتحويل البنكي"
+        class="img-fluid rounded shadow-sm p-2 bg-white"
+        style="max-width: 260px; border: 1px solid #e5e5e5;"> <!-- ★ -->
+      <div class="small text-muted mt-2">امسح الرمز في تطبيق البنك لإدخال البيانات تلقائيًا</div> <!-- ★ -->
+    </div>
+  </div>
+  <!-- ★ نهاية قسم الصور -->
+</div>
+
+<!-- 🧾 ملخّص الدفعة -->
+<h2 class="mb-4">🧾 تفاصيل الدفعة</h2>
+<div class="card p-4 shadow-sm mb-4">
+  <ul class="mb-0">
+    <li><strong>المنتج:</strong> {{ batch.product }}</li>
+    <li><strong>عدد السندات:</strong> {{ batch.vouchers|length }}</li>
+    <li><strong>الكمية الكليّة:</strong> {{ batch.total_quantity() }}</li>
+    <li><strong>الحالة الحالية:</strong>
+      {% if batch.status == 'awaiting_payment' %}
+        <span class="text-warning">بانتظار الدفع</span>
+      {% elif batch.status == 'payment_rejected' %}
+        <span class="text-danger">مرفوضة</span>
+      {% elif batch.status == 'payment_under_review' %}
+        <span class="text-info">قيد المراجعة</span>
+      {% endif %}
+    </li>
+  </ul>
+
+  {% if batch.note %}
+    <div class="alert alert-warning mt-3">
+      ملاحظة من الإدارة: {{ batch.note }}
+    </div>
+  {% endif %}
+</div>
+
+<!-- 📤 نموذج تأكيد الدفع -->
+<form method="post" class="card p-4 shadow-sm">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="mb-3">
+    <label class="form-label" for="account_name">
+      اسم الحساب البنكي الذي تم التحويل منه:
+    </label>
+    <input type="text" name="account_name" id="account_name"
+           class="form-control" placeholder="مثلاً: مؤسسة النجاح التجارية" required>
+  </div>
+
+  <button type="submit" class="btn btn-primary px-5">✔ تأكيد الدفع</button>
+  <a href="{{ url_for('factory.commission_payments') }}" class="btn btn-secondary ms-2">رجوع</a>
+</form>
+
+{% endblock %}

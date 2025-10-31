@@ -1,0 +1,46 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+
+<h2 class="mb-4">⚙️ إعدادات المصنع</h2>
+
+<div class="card p-4 shadow-sm">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="alert alert-{{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post">
+    {{ form.csrf_token }}
+
+    <div class="mb-3">
+      {{ form.name.label(class="form-label") }}
+      {{ form.name(class="form-control") }}
+      {% for e in form.name.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.contact_person.label(class="form-label") }}
+      {{ form.contact_person(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.contact_phone.label(class="form-label") }}
+      {{ form.contact_phone(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.cr_number.label(class="form-label") }}
+      {{ form.cr_number(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.vat_number.label(class="form-label") }}
+      {{ form.vat_number(class="form-control") }}
+    </div>
+
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+</div>
+
+{% endblock %}

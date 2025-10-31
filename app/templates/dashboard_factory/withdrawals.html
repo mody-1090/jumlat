@@ -1,0 +1,44 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+<h4>طلبات السحب</h4>
+<table class="table align-middle">
+  <thead class="table-light"><tr>
+    <th>#</th><th>المروج</th><th>المبلغ</th><th>الحالة</th><th>إجراء</th>
+  </tr></thead>
+  <tbody>
+  {% for w in withdrawals %}
+    <tr>
+      <td>{{ w.id }}</td>
+      <td>{{ w.promoter.user.username }}</td>
+      <td>{{ "%.2f"|format(w.amount) }} ر.س</td>
+      <td>
+        {% if w.status=='pending' %}<span class="badge bg-warning">قيد المراجعة</span>{% endif %}
+        {% if w.status=='approved' %}<span class="badge bg-success">مقبول</span>{% endif %}
+        {% if w.status=='rejected' %}<span class="badge bg-danger">مرفوض</span>{% endif %}
+      </td>
+      <td>
+       {% if w.status=='pending' %}
+        <form method="POST" action="{{ url_for('factory.decide_withdrawal', wid=w.id) }}">
+          {{ csrf_token() }}
+          <input type="hidden" name="decision" value="approve">
+          <button class="btn btn-sm btn-success">قبول</button>
+        </form>
+        <form method="POST" action="{{ url_for('factory.decide_withdrawal', wid=w.id) }}"
+              class="mt-1">
+          {{ csrf_token() }}
+          <input type="hidden" name="decision" value="reject">
+          <input type="text" name="note" class="form-control form-control-sm mb-1"
+                 placeholder="سبب الرفض">
+          <button class="btn btn-sm btn-danger">رفض</button>
+        </form>
+       {% elif w.status=='rejected' and not w.dispute %}
+        <span class="text-muted small">بانتظار تظلّم المروج</span>
+       {% else %}
+        —
+       {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

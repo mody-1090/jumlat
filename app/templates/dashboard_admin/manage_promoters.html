@@ -1,0 +1,158 @@
+{% extends "dashboard_admin/base.html" %}
+{% block title %}لوحة الإدارة – المروّجون{% endblock %}
+
+{% block admin_content %}
+<h2 class="mb-4">إدارة المروّجين</h2>
+
+{% if promoters|length == 0 %}
+  <div class="alert alert-info">لا يوجد مروّجون حالياً.</div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-light text-center">
+        <tr>
+          <th>#</th>
+          <th>المروّج</th>
+          <th>المستخدم</th>
+          <th>البريد</th>
+          <th>الجوال</th>
+          <th>حالة الحساب</th>
+          <th>سندات السوق</th>
+          <th>إجراءات</th>
+        </tr>
+      </thead>
+      <tbody class="text-center">
+        {% for p in promoters %}
+          {% set user = p.user %}
+          {% set vlist = (vouchers_by_promoter.get(p.id) or []) %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td class="text-start">
+              <div class="fw-bold">{{ p.name }}</div>
+              <div class="small text-muted">Promoter ID: {{ p.id }}</div>
+              {# معلومات بنكية إن وُجدت #}
+              {% if p.bank_name or p.iban %}
+                <div class="small">
+                  بنك: {{ p.bank_name or '—' }} — آيبان: {{ p.iban or '—' }}
+                </div>
+              {% endif %}
+            </td>
+            <td>
+              <div>{{ user.username }}</div>
+              <div class="small text-muted">{{ user.email }}</div>
+            </td>
+            <td>{{ user.phone or '—' }}</td>
+            <td>
+              {% if user.is_verified %}
+                <span class="badge bg-success">مفعّل</span>
+              {% else %}
+                <span class="badge bg-secondary">غير مفعّل</span>
+              {% endif %}
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-info"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#market-vouchers-{{ p.id }}"
+                      aria-expanded="false"
+                      aria-controls="market-vouchers-{{ p.id }}">
+                عرض ({{ vlist|length }})
+              </button>
+            </td>
+            <td>
+              <a href="{{ url_for('.edit_promoter', id=p.id) }}" class="btn btn-sm btn-outline-primary">تعديل</a>
+              <form action="{{ url_for('.delete_promoter', id=p.id) }}" method="post" class="d-inline">
+                {{ csrf_token() }}
+                <button type="submit" class="btn btn-sm btn-outline-danger"
+                        onclick="return confirm('حذف هذا المروّج؟');">حذف</button>
+              </form>
+            </td>
+          </tr>
+
+          {# الأكورديون: جدول سندات السوق + المصنع + تفاصيل الطلب #}
+          <tr class="bg-light">
+            <td colspan="8" class="p-0">
+              <div class="collapse" id="market-vouchers-{{ p.id }}">
+                <div class="p-3">
+                  {% if vlist|length == 0 %}
+                    <div class="alert alert-info mb-0">لا توجد سندات مُفعّلة من السوق لهذا المروّج.</div>
+                  {% else %}
+                    <div class="table-responsive">
+                      <table class="table table-sm table-bordered align-middle">
+                        <thead class="table-light">
+                          <tr class="text-center">
+                            <th>#</th>
+                            <th>كود السند</th>
+                            <th>المنتج</th>
+                            <th>المصنع</th>
+                            <th>الكمية</th>
+                            <th>السعر/وحدة</th>
+                            <th>الإجمالي</th>
+                            <th>مدينة السند</th>
+                            <th>حالة السند</th>
+                            <th>تاريخ الطلب</th>
+                            <th>العميل</th>
+                            <th>المتجر</th>
+                            <th>جوال العميل</th>
+                            <th>مدينة الطلب</th>
+                            <th>العنوان/الخرائط</th>
+                            <th>تفاصيل</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for v in vlist %}
+                            {% set o = v.order %}
+                            <tr>
+                              <td class="text-center">{{ loop.index }}</td>
+                              <td class="fw-semibold">{{ v.code }}</td>
+                              <td class="text-start">{{ v.product }}</td>
+                              <td class="text-start">
+                                {% if v.factory %}
+                                  <a href="{{ url_for('admin.view_factory', id=v.factory.id) }}">{{ v.factory.name }}</a>
+                                {% else %}—{% endif %}
+                              </td>
+                              <td class="text-center">{{ v.quantity }}</td>
+                              <td class="text-center">
+                                {% if v.price_per_unit %}{{ "{:,.2f}".format(v.price_per_unit) }}{% else %}—{% endif %}
+                              </td>
+                              <td class="text-center">
+                                {% if v.total_price %}{{ "{:,.2f}".format(v.total_price) }}{% else %}—{% endif %}
+                              </td>
+                              <td class="text-center">{{ v.city or '—' }}</td>
+                              <td class="text-center">{{ v.status or '—' }}</td>
+
+                              <td class="text-center">
+                                {{ o.created_at.strftime('%Y-%m-%d %H:%M') if o and o.created_at else '—' }}
+                              </td>
+                              <td class="text-start">{{ o.customer_name if o else '—' }}</td>
+                              <td class="text-start">{{ o.shop_name if o else '—' }}</td>
+                              <td class="text-center">{{ o.customer_phone if o else '—' }}</td>
+                              <td class="text-center">{{ o.city if o else '—' }}</td>
+                              <td class="text-start">
+                                {% if o %}
+                                  {% if o.address_detail %}{{ o.address_detail }}{% endif %}
+                                  {% if o.maps_link %}
+                                    <div><a href="{{ o.maps_link }}" target="_blank" rel="noopener">Google Maps</a></div>
+                                  {% endif %}
+                                {% else %}—{% endif %}
+                              </td>
+                              <td class="text-center">
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('.view_voucher', id=v.id) }}">عرض السند</a>
+                              </td>
+                            </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+          </tr>
+
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

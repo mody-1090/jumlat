@@ -1,0 +1,26 @@
+{# templates/dashboard_admin/logs.html #}
+{% extends "dashboard_admin/base.html" %}
+
+{% block title %}لوحة الإدارة – السجلات{% endblock %}
+
+{% block admin_content %}
+  <h2 class="mb-4">سجلات النظام</h2>
+  <table class="table table-hover mt-3">
+    <thead class="table-light">
+      <tr>
+        <th>الوقت</th>
+        <th>المستخدم</th>
+        <th>الإجراء</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+        <tr>
+          <td>{{ log.timestamp.strftime("%Y-%m-%d %H:%M") }}</td>
+          <td>{{ log.user or "-" }}</td>
+          <td>{{ log.action }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

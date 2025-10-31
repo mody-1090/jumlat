@@ -1,0 +1,127 @@
+{# templates/public/confirm_order.html #}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>إنشاء طلب – جُملة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body{background:#f6f9fc;font-family:"Cairo",sans-serif}
+    .jumlat-card{border:none;border-radius:1rem;box-shadow:0 4px 8px rgba(0,0,0,.06)}
+    .jumlat-card .card-header{background:#2575fc;color:#fff;border-top-right-radius:1rem;border-top-left-radius:1rem}
+    .btn-jumlat{background:#2575fc;border:0}.btn-jumlat:hover{background:#1e63d4}
+  </style>
+</head>
+<body class="container py-4">
+
+  {# بطاقة معلومات السند #}
+  <div class="card jumlat-card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>إنشاء طلب للسند <strong>{{ voucher.code }}</strong></span>
+      <span class="badge bg-warning text-dark">مفعَّل • جاهز للطلب</span>
+    </div>
+    <div class="card-body">
+      <div class="row gy-2 text-center text-md-start">
+        <div class="col-md-3"><strong>المنتج:</strong> {{ voucher.product }}</div>
+        <div class="col-md-3"><strong>الكمية/سند:</strong> {{ voucher.quantity }}</div>
+        <div class="col-md-3"><strong>الإجمالي (شامل):</strong> {{ "%.2f"|format(voucher.total_price) }} ر.س</div>
+        <div class="col-md-3"><strong>المدينة:</strong> الرياض</div>
+      </div>
+    </div>
+  </div>
+
+  {# فلاش مسج #}
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      {% for c,m in msgs %}
+        <div class="alert alert-{{c}} alert-dismissible fade show">{{m}}
+          <button class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" class="row g-3 needs-validation" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="city" value="الرياض">
+
+    <h5 class="fw-bold">بيانات العميل / محل التجزئة</h5>
+    <div class="col-md-6">
+      <label class="form-label">الاسم الكامل</label>
+      <input name="customer_name" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">رقم الجوال</label>
+      <input name="customer_phone" class="form-control" placeholder="05XXXXXXXX" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">اسم المحل / النشاط</label>
+      <input name="shop_name" class="form-control" required>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">العنوان التفصيلي <span class="text-muted">(اختياري إذا أرفقت رابط خرائط)</span></label>
+      <textarea name="address_detail" class="form-control" rows="2"></textarea>
+    </div>
+    <div class="col-12">
+      <label class="form-label">رابط Google Maps <span class="text-muted">(اختياري إذا كتبت العنوان)</span></label>
+      <input name="maps_link" class="form-control">
+    </div>
+
+    <h5 class="fw-bold mt-3">بيانات النشاط</h5>
+    <div class="col-md-6">
+      <label class="form-label">السجل التجاري</label>
+      <input name="cr_number" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">الرقم الضريبي</label>
+      <input name="vat_number" class="form-control" required>
+    </div>
+
+    <h5 class="fw-bold mt-3">تفاصيل الطلب</h5>
+   {# حقل مخفي يُرسل الكمية الصحيحة #}
+<input type="hidden" name="quantity" value="{{ voucher.quantity }}">
+
+<div class="col-md-4">
+  <label class="form-label">عدد الكراتين</label>
+  <input class="form-control" value="{{ voucher.quantity }}" disabled>
+</div>
+
+    <div class="col-md-8">
+      <label class="form-label">الوقت المناسب للاستلام</label>
+      <input name="preferred_time" class="form-control" required>
+    </div>
+    <div class="col-12">
+      <label class="form-label">ملاحظات إضافية (اختياري)</label>
+      <textarea name="notes" class="form-control" rows="2"></textarea>
+    </div>
+
+    <div class="col-12 text-center mt-3">
+      <button class="btn btn-jumlat px-5"><i class="bi bi-check-lg"></i> تأكيد الطلب</button>
+      <a href="{{ url_for('promoter.vouchers') }}" class="btn btn-outline-secondary ms-2">إلغاء</a>
+    </div>
+  </form>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // validation + شرط: أحد الحقلين address_detail أو maps_link إجباري
+    ( () => {
+      const form = document.querySelector('.needs-validation');
+      form.addEventListener('submit', e=>{
+        const addr  = form.address_detail.value.trim();
+        const link  = form.maps_link.value.trim();
+        if (!addr && !link){           // كلاهما فارغ
+          e.preventDefault(); e.stopPropagation();
+          alert("يجب إدخال العنوان التفصيلي أو رابط خرائط Google.");
+        }
+        if (!form.checkValidity()) {
+          e.preventDefault(); e.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    })();
+  </script>
+</body>
+</html>

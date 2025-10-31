@@ -1,0 +1,15 @@
+{% extends 'shared/base.html' %}
+{% block title %}تأكيد سحب السند{% endblock %}
+{% block content %}
+<h3 class="my-4">سحب السند</h3>
+
+<div class="alert alert-warning">
+  ستقوم بربط السند <strong>{{ voucher.code }}</strong> بحسابك، ولن يعود متاحًا لغيرك.
+</div>
+
+<form method="POST">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn btn-success">✅ تأكيد السحب</button>
+  <a href="{{ url_for('public.market') }}" class="btn btn-outline-secondary">إلغاء</a>
+</form>
+{% endblock %}

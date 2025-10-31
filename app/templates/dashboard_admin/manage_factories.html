@@ -1,0 +1,36 @@
+{% extends "dashboard_admin/base.html" %}
+
+{% block title %}لوحة الإدارة – إدارة المصانع{% endblock %}
+
+{% block admin_content %}
+  <h2 class="mb-4">قائمة المصانع المسجلة</h2>
+
+  <table class="table table-bordered table-striped text-center align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>م</th>
+        <th>اسم المصنع</th>
+        <th>البريد الإلكتروني</th>
+        <th>الشخص المسؤول</th>
+        <th>رقم التواصل</th>
+        <th>السجل التجاري</th>
+        <th>الرقم الضريبي</th>
+        <th>نسبة العمولة</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for factory in factories %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ factory.name }}</td>
+          <td>{{ factory.user.email if factory.user else "-" }}</td>
+          <td>{{ factory.contact_person or "-" }}</td>
+          <td>{{ factory.contact_phone or "-" }}</td>
+          <td>{{ factory.cr_number or "-" }}</td>
+          <td>{{ factory.vat_number or "-" }}</td>
+          <td>{{ factory.commission_rate }} ر.س</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

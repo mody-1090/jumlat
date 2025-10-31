@@ -1,0 +1,206 @@
+{% extends "dashboard_factory/base.html" %}
+{% block factory_content %}
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<h2 class="mb-3">إصدار سندات توريد</h2>
+
+<!-- تنبيه قواعد الإصدار -->
+<div class="alert alert-info d-flex align-items-start" role="alert">
+  <div class="me-2"><i class="bi bi-info-circle"></i></div>
+  <div>
+    <div class="fw-bold mb-1">قواعد الإصدار:</div>
+    <ul class="mb-0">
+      <li>الحد الأدنى لإجمالي الوحدات (الكراتين) في هذه الدفعة: <strong>5000 كرتون</strong>.</li>
+      <li>الحد الأدنى للكمية في كل سند: <strong>50 كرتون</strong>.</li>
+      <li>أمثلة صحيحة: <span class="badge bg-secondary">1 سند × 5000 كرتون</span> أو
+          <span class="badge bg-secondary">1000 سند × 50 كرتون</span> (وأي توليفة تحقق الإجمالي ≥ 5000).</li>
+      <li>اكتب اسم المنتج بصيغة وصفية تميّز “الكرتون”، مثل:
+          <span class="text-muted">ماء 330 مل × 24 – كرتون</span> أو
+          <span class="text-muted">ماء 600 مل × 12 – كرتون</span>.</li>
+    </ul>
+  </div>
+</div>
+
+<form method="POST" class="row g-3" id="issue-form">
+  {{ form.hidden_tag() }}
+
+  <!-- اسم المنتج -->
+  <div class="col-md-6">
+    {{ form.product.label(class="form-label") }}
+    {{ form.product(class="form-control", placeholder="مثال: ماء 330 مل × 24 – كرتون") }}
+    <small class="text-muted d-block mt-1">
+      اكتب الاسم بصيغة تُعرّف الكرتون بوضوح (السعة × عدد العبوات داخل الكرتون). مثال: <em>ماء 330 مل × 24 – كرتون</em>.
+    </small>
+    {% for e in form.product.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+  </div>
+
+  <!-- الكمية لكل سند (كراتين) -->
+  <div class="col-md-3">
+    {{ form.quantity.label(class="form-label") }}
+    {{ form.quantity(class="form-control", min="50", step="1", id="quantity") }}
+    <small class="text-muted d-block mt-1">
+      أقل كمية لكل سند: <strong>50 كرتون</strong>. مثال: 50، 200، 500...
+    </small>
+    {% for e in form.quantity.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+  </div>
+
+  <!-- عدد السندات -->
+  <div class="col-md-3">
+    {{ form.count.label(class="form-label") }}
+    {{ form.count(class="form-control", min="1", step="1", id="count") }}
+    <small class="text-muted d-block mt-1">
+      عدد السندات التي ستُصدرها بهذه المواصفات. يجب أن يُحقق الإجمالي ≥ <strong>5000 كرتون</strong>.
+    </small>
+    {% for e in form.count.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+  </div>
+
+  <!-- سعر الوحدة (لكل كرتون) بدون ضريبة -->
+  <div class="col-md-4">
+    {{ form.price_per_unit.label(class="form-label") }}
+    {{ form.price_per_unit(class="form-control", id="price_per_unit", step="0.01", min="0") }}
+    <small class="text-muted d-block mt-1">
+      أدخل <strong>سعر الكرتون بدون ضريبة</strong>. سنعرض لك السعر مع الضريبة تلقائيًا.
+    </small>
+    {% for e in form.price_per_unit.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+  </div>
+
+  <!-- نسبة الضريبة (عشرية) -->
+  <div class="col-md-4">
+    {{ form.vat_rate.label(class="form-label") }}
+    {{ form.vat_rate(class="form-control", readonly=true, id="vat_rate") }}
+    <small class="text-muted d-block mt-1">
+      <!-- ★ توضيح أنها قيمة عشرية -->
+      تُكتب كنسبة عشرية: <strong>0.15 = 15%</strong>. <!-- ★ -->
+    </small>
+    {% for e in form.vat_rate.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+  </div>
+
+  <!-- عمولة المروج لكل كرتون -->
+  <div class="col-md-4">
+    {{ form.commission_per.label(class="form-label") }}
+    {{ form.commission_per(class="form-control", step="0.01", min="0", id="commission_per") }}
+    <small class="text-muted d-block mt-1">
+      عمولة المروّج لكل كرتون، مثال: 0.50 ريال. (عمولة المنصة تُحتسب مستقلًا).
+    </small>
+    {% for e in form.commission_per.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+  </div>
+
+  <!-- مدينة السند -->
+  <div class="col-md-6">
+    {{ form.city.label(class="form-label") }}
+    {{ form.city(class="form-select", id="city") }}
+    <small class="text-muted d-block mt-1">
+      اختر مدينة توفّر الكراتين فيها حاليًا لتسهيل المطابقة اللوجستية.
+    </small>
+    {% for e in form.city.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
+  </div>
+
+  <!-- معاينة وحالة التحقق -->
+  <div class="col-12">
+    <div class="card p-3 shadow-sm">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-3">
+          <div class="small text-muted">إجمالي الكراتين</div>
+          <div class="fs-5 fw-bold" id="total_units">0</div>
+        </div>
+        <div class="col-md-3">
+          <div class="small text-muted">سعر الكرتون مع الضريبة</div>
+          <div class="fs-6" id="ppu_with_vat">—</div>
+        </div>
+        <div class="col-md-6">
+          <div id="rules_msg" class="alert alert-warning py-2 px-3 mb-0">
+            يجب أن تكون <strong>الكمية لكل سند ≥ 50</strong> وأن يكون
+            <strong>إجمالي الكراتين ≥ 5000</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- أزرار -->
+  <div class="col-12">
+    {{ form.submit(class="btn btn-primary px-5", id="submit_btn") }}
+  </div>
+</form>
+
+{% if created %}
+  <div class="alert alert-success mt-4">
+    ✔ تم إصدار {{ created|length }} سند توريد بنجاح
+  </div>
+
+  <p class="mt-3 fw-bold">
+    شارك الرابط التالي في حساب المصنع أو الوكلاء لزيادة وصول السندات:
+  </p>
+  {% set tweet = 'أصدرت ' ~ created|length ~ ' سند توريد عبر منصة جُملة — انضم الآن: ' ~ request.url_root ~ 'market' %}
+  <a class="btn btn-info" target="_blank"
+     href="https://twitter.com/intent/tweet?text={{ tweet|urlencode }}">
+     <i class="bi bi-twitter"></i> تغريد عن السندات
+  </a>
+{% endif %}
+
+<script>
+  // قيم الحقول
+  const qtyEl   = document.getElementById('quantity');
+  const cntEl   = document.getElementById('count');
+  const ppuEl   = document.getElementById('price_per_unit');
+  const vatEl   = document.getElementById('vat_rate');
+  const totalEl = document.getElementById('total_units');
+  const withVat = document.getElementById('ppu_with_vat');
+  const rules   = document.getElementById('rules_msg');
+  const submit  = document.getElementById('submit_btn');
+
+  const MIN_QTY_PER_VOUCHER = 50;
+  const MIN_TOTAL_UNITS     = 5000;
+
+  function parseNum(el, fallback=0) {
+    const v = parseFloat((el?.value || '').toString().replace(',', '.'));
+    return isNaN(v) ? fallback : v;
+  }
+
+  function validate() {
+    const q   = Math.floor(parseNum(qtyEl));
+    const c   = Math.floor(parseNum(cntEl));
+    const ppu = parseNum(ppuEl);
+    const vat = parseNum(vatEl, 0.15); // ★ افتراضي 0.15 كنسبة عشرية
+
+    // إجمالي الكراتين
+    const totalUnits = (q > 0 && c > 0) ? (q * c) : 0;
+    totalEl.textContent = totalUnits.toLocaleString('ar-EG');
+
+    // سعر الكرتون مع الضريبة (vat عشرية)
+    if (!isNaN(ppu)) {
+      const gross = ppu * (1 + vat); // ★ لا تقسيم على 100
+      withVat.textContent = gross.toFixed(2) + ' ر.س';
+    } else {
+      withVat.textContent = '—';
+    }
+
+    // التحقق من القواعد
+    const okPerVoucher = q >= MIN_QTY_PER_VOUCHER;
+    const okTotal      = totalUnits >= MIN_TOTAL_UNITS;
+
+    if (okPerVoucher && okTotal) {
+      rules.className = 'alert alert-success py-2 px-3 mb-0';
+      rules.innerHTML = '✅ الشروط مستوفاة: يمكنك الإصدار الآن.';
+      submit.removeAttribute('disabled');
+    } else {
+      let msgs = [];
+      if (!okPerVoucher) msgs.push(`الكمية لكل سند يجب أن تكون ≥ ${MIN_QTY_PER_VOUCHER} كرتون.`);
+      if (!okTotal) msgs.push(`إجمالي الكراتين يجب أن يكون ≥ ${MIN_TOTAL_UNITS}.`);
+      rules.className = 'alert alert-warning py-2 px-3 mb-0';
+      rules.innerHTML = '⚠️ ' + msgs.join(' ');
+      submit.setAttribute('disabled', 'disabled');
+    }
+  }
+
+  // ربط الأحداث
+  ['input','change'].forEach(evt => {
+    qtyEl?.addEventListener(evt, validate);
+    cntEl?.addEventListener(evt, validate);
+    ppuEl?.addEventListener(evt, validate);
+    vatEl?.addEventListener(evt, validate);
+  });
+  window.addEventListener('load', validate);
+</script>
+{% endblock %}

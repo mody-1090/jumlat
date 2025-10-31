@@ -1,0 +1,100 @@
+{% extends "shared/base.html" %}
+
+{# ---------------- عنوان الصفحة ---------------- #}
+{% block title %}لوحة التحكم – مصنع جُملة{% endblock %}
+
+{# ---------------- محتوى الصفحة الرئيسي ---------------- #}
+{% block content %}
+
+  {# ================= Nav-Tabs أعلى الصفحة ================= #}
+  <ul class="nav nav-tabs mb-4">
+
+    {# تبويب إصدار السندات #}
+    <li class="nav-item">
+      <a class="nav-link {% if active_tab == 'issue' %}active{% endif %}"
+         href="{{ url_for('factory.create_vouchers') }}">
+        إصدار سندات
+      </a>
+    </li>
+
+    {# تبويب دفعات العمولات #}
+    <li class="nav-item">
+      <a class="nav-link {% if active_tab == 'payments' %}active{% endif %}"
+         href="{{ url_for('factory.commission_payments') }}">
+        دفع رسوم المنصة 
+        {% if waiting_batches|default(0) > 0 %}
+          <span class="badge bg-warning text-dark">{{ waiting_batches }}</span>
+        {% endif %}
+      </a>
+    </li>
+
+    {# تبويب متابعة السندات الفردية #}
+    <li class="nav-item">
+      <a class="nav-link {% if active_tab == 'track' %}active{% endif %}"
+         href="{{ url_for('factory.vouchers_list') }}">   {# ← تم التعديل هنا #}
+        سنداتي
+      </a>
+    </li>
+
+  </ul>
+  {# ========================================================= #}
+
+  {# ---------------- تخطيط الصفحة: شريط جانبى + محتوى ---------------- #}
+  <div class="row">
+
+    {# ----- الشريط الجانبى (Sidebar) ----- #}
+    <nav class="col-md-2 bg-light sidebar py-4">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('factory.dashboard') }}">
+            🏠 الرئيسية
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('factory.vouchers_list') }}">   {# ← تم التعديل هنا أيضًا #}
+            📋 سنداتي
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('factory.create_vouchers') }}">
+            ➕ إصدار سندات
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('factory.orders') }}">
+            📦 الطلبات
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('factory.factory_commission_invoices') }}">
+            📄 فواتيري (رسوم المنصه)
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('factory.orders_promoters') }}">
+            💰 تسوية مالية
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('factory.settings') }}">
+            ⚙️ الإعدادات
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    {# ----- منطقة المحتوى الرئيسى ----- #}
+    <main class="col-md-10 py-4">
+      {% block factory_content %}{% endblock %}
+    </main>
+
+  </div>
+  {# ------------------------------------------------------------------- #}
+
+{% endblock %}

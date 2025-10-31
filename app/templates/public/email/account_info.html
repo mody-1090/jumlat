@@ -1,0 +1,24 @@
+<!doctype html>
+<html dir="rtl" lang="ar">
+  <body style="font-family: Tahoma, sans-serif; background:#f7f9fc; padding:2rem;">
+    <div style="max-width: 600px; margin:auto; background:#ffffff; border-radius:8px; padding:2rem; box-shadow:0 0 10px rgba(0,0,0,0.05);">
+      <h2 style="color:#2575fc;">تهانينا {{ user.username }}!</h2>
+      <p>تم تفعيل حسابك بنجاح في <strong>منصة جُملة</strong>.</p>
+
+      <table style="width:100%; border-collapse:collapse; margin:20px 0;">
+        <tr><td style="padding:8px;">البريد الإلكتروني:</td><td style="padding:8px;">{{ user.email }}</td></tr>
+        <tr><td style="padding:8px;">نوع الحساب:</td><td style="padding:8px;">{{ user.role|title }}</td></tr>
+        {% if user.role == 'factory' and user.factory %}
+        <tr><td style="padding:8px;">اسم المصنع:</td><td style="padding:8px;">{{ user.factory.name }}</td></tr>
+        {% elif user.role == 'promoter' and user.promoter %}
+        <tr><td style="padding:8px;">اسم المروّج:</td><td style="padding:8px;">{{ user.promoter.name }}</td></tr>
+        {% endif %}
+      </table>
+
+      <p>يمكنك تسجيل الدخول عبر الزر أدناه:</p>
+      <a href="{{ login_url }}" style="display:inline-block; background:#2575fc; color:#fff; padding:12px 28px; border-radius:6px; text-decoration:none;">تسجيل الدخول</a>
+
+      <p style="font-size:12px; color:#999; margin-top:30px;">© {{ now().year }} Jumlat.COM</p>
+    </div>
+  </body>
+</html>

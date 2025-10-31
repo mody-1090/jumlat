@@ -1,0 +1,20 @@
+[33mc6d587a[m[33m ([m[1;36mHEAD[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mclean-main[m[33m)[m HEAD@{Fri Oct 31 16:20:37 2025}: rebase (start): checkout origin/main
+[33md4757dc[m[33m ([m[1;32mmain[m[33m)[m HEAD@{Fri Oct 31 16:19:50 2025}: reset: moving to HEAD
+[33md4757dc[m[33m ([m[1;32mmain[m[33m)[m HEAD@{Fri Oct 31 16:19:05 2025}: rebase (abort): returning to refs/heads/main
+[33md4757dc[m[33m ([m[1;32mmain[m[33m)[m HEAD@{Fri Oct 31 16:19:05 2025}: rebase (abort): returning to refs/heads/main
+[33m543193b[m HEAD@{Fri Oct 31 16:13:31 2025}: commit: Add Flask-Caching for cache support
+[33mab31369[m HEAD@{Fri Oct 31 16:06:46 2025}: commit: Add gunicorn for Render
+[33m8fcb69a[m HEAD@{Fri Oct 31 16:05:38 2025}: commit: Reset history: clean initial commit (no secrets)
+[33m8462c18[m HEAD@{Fri Oct 31 16:02:55 2025}: checkout: moving from clean-main to main
+[33mc6d587a[m[33m ([m[1;36mHEAD[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mclean-main[m[33m)[m HEAD@{Fri Oct 31 15:59:41 2025}: commit: Add gunicorn for Render
+[33m4cc7d5c[m HEAD@{Fri Oct 31 15:48:05 2025}: commit (initial): Reset history: clean initial commit (no secrets)
+[33m8462c18[m HEAD@{Fri Oct 31 15:36:59 2025}: checkout: moving from main to main
+[33m8462c18[m HEAD@{Fri Oct 31 15:33:54 2025}: commit: Ignore .env (prevent future leaks)
+[33m458da81[m HEAD@{Fri Oct 31 15:33:03 2025}: checkout: moving from main to main
+[33m458da81[m HEAD@{Fri Oct 31 15:28:44 2025}: commit (amend): Ignore .env and pycache
+[33m842312f[m HEAD@{Fri Oct 31 15:26:41 2025}: commit (amend): Ignore .env and pycache
+[33md4757dc[m[33m ([m[1;32mmain[m[33m)[m HEAD@{Fri Oct 31 15:19:26 2025}: checkout: moving from d4757dc88d040f681346aeb17eeb2f91e391e40f to main
+[33md4757dc[m[33m ([m[1;32mmain[m[33m)[m HEAD@{Fri Oct 31 15:18:04 2025}: reset: moving to ORIG_HEAD
+[33m73d1369[m HEAD@{Fri Oct 31 15:17:07 2025}: pull --rebase origin main (start): checkout 73d1369df5f1a764cc8594b3ed1fc467e12d6bc6
+[33md4757dc[m[33m ([m[1;32mmain[m[33m)[m HEAD@{Fri Oct 31 15:16:25 2025}: commit: Ignore .env and pycache
+[33me7346e3[m HEAD@{Fri Oct 31 15:11:53 2025}: commit: Update files (without .env)

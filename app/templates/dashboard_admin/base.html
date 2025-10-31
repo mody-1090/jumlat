@@ -1,0 +1,78 @@
+{# dashboard_admin/base.html #}
+{% extends "shared/base.html" %}
+{% block title %}لوحة الإدارة – جُملة{% endblock %}
+
+{% block content %}
+<div class="row">
+
+  <!-- ➊ الشريط الجانبي -->
+  <nav class="col-md-2 bg-light sidebar py-4">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">🏠 الرئيسية</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.manage_factories') }}">🏭 المصانع</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.manage_promoters') }}">👥 المروجون</a>
+      </li>
+
+    <!-- ✅ رابط جديد لمراجعة السندات -->
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('admin.voucher_review') }}">📝 مراجعة السندات</a>
+    </li>
+
+
+
+<li class="nav-item">
+  <a class="nav-link" href="{{ url_for('admin.all_invoices') }}">
+    📑 فواتير العمولات
+  </a>
+</li>
+
+
+
+<li class="nav-item">
+  <a class="nav-link" href="{{ url_for('admin.voucher_payment_review') }}">💳 مراجعة إثباتات الدفع</a>
+</li>
+
+
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.disputes') }}">⚖️ التظلمات</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.logs') }}">📜 السجلات</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.reports') }}">📊 التقارير</a>
+      </li>
+      <li class="nav-item mt-3">
+        <a class="btn btn-outline-danger w-100" href="{{ url_for('auth.logout') }}">
+          تسجيل الخروج
+        </a>
+
+<li class="nav-item">
+  <a class="nav-link" href="{{ url_for('admin.batch_payment_review') }}">
+    💰 دفعات العمولة
+  </a>
+</li>
+
+<li class="nav-item">
+  <a class="nav-link" href="{{ url_for('admin.notify_factory') }}">
+    <i class="bi bi-envelope-fill"></i> إرسال تنبيه للمصنع
+  </a>
+</li>
+
+
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ➋ محتوى الصفحة -->
+  <main class="col-md-10 py-4">
+    {% block admin_content %}{% endblock %}
+  </main>
+
+</div>
+{% endblock %}
