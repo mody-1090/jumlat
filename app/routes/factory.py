@@ -10,7 +10,7 @@ from datetime import datetime
 from app.utils.generate_qr import generate_qr_code
 from sqlalchemy import and_, func
 from sqlalchemy.orm import joinedload
-
+from app.utils.s3_upload import upload_file_to_s3
 from app.utils.helpers import count_waiting_batches
 
 factory_bp = Blueprint('factory', __name__, url_prefix='/factory')
@@ -60,51 +60,65 @@ def dashboard():
 @factory_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_vouchers():
-    form    = VoucherForm()
+    form = VoucherForm()
     factory = Factory.query.get_or_404(current_user.factory_id)
 
     if form.validate_on_submit():
-        product        = form.product.data.strip()
-        quantity       = form.quantity.data
-        count          = form.count.data
+        product = form.product.data.strip()
+        quantity = form.quantity.data
+        count = form.count.data
         commission_per = form.commission_per.data
         price_per_unit = form.price_per_unit.data
-        vat_rate       = form.vat_rate.data
-        city           = form.city.data  # ← جديد
+        vat_rate = form.vat_rate.data
+        city = form.city.data
+
+        # جديد: وصف المنتج + صورة المنتج
+        product_description = request.form.get('product_description', '').strip()
+        product_image = request.files.get('product_image')
+
+        product_image_url = None
+        if product_image and product_image.filename:
+            product_image_url = upload_file_to_s3(product_image, folder="voucher-products")
+
+            if not product_image_url:
+                flash('❌ تعذر رفع صورة المنتج، حاول مرة أخرى.', 'danger')
+                return redirect(url_for('factory.create_vouchers'))
 
         # ❶ إنشاء دفعة جديدة
         batch = VoucherBatch(
-            factory_id = factory.id,
-            product    = product,
-            status     = 'awaiting_payment'
+            factory_id=factory.id,
+            product=product,
+            status='awaiting_payment'
         )
         db.session.add(batch)
-        db.session.flush()  # نحصل على batch.id فقط
+        db.session.flush()  # للحصول على batch.id
 
-        # ❷ تجهيز السندات دفعة واحدة بدون flush متكرر
+        # ❷ تجهيز السندات
         from uuid import uuid4
 
         vouchers = []
         vat_multiplier = (1 + vat_rate)
-        total_price    = (price_per_unit * quantity) * vat_multiplier
-        factory_comm   = commission_per * quantity
+        total_price = (price_per_unit * quantity) * vat_multiplier
+        factory_comm = commission_per * quantity
 
         for _ in range(count):
             v = Voucher(
-                code               = str(uuid4())[:12].upper(),  # كود فريد وسريع
-                product            = product,
-                quantity           = quantity,
-                price_per_unit     = price_per_unit,
-                vat_rate           = vat_rate,
-                total_price        = total_price,
-                factory_commission = factory_comm,
-                factory_id         = factory.id,
-                batch_id           = batch.id,
-                city               = city
+                code=str(uuid4())[:12].upper(),
+                product=product,
+                product_description=product_description or None,
+                product_image_url=product_image_url,
+                quantity=quantity,
+                price_per_unit=price_per_unit,
+                vat_rate=vat_rate,
+                total_price=total_price,
+                factory_commission=factory_comm,
+                factory_id=factory.id,
+                batch_id=batch.id,
+                city=city
             )
             vouchers.append(v)
 
-        # ❸ إضافة جميع السندات دفعة واحدة (Bulk)
+        # ❸ إضافة جميع السندات دفعة واحدة
         db.session.bulk_save_objects(vouchers)
         db.session.commit()
 
@@ -118,8 +132,6 @@ def create_vouchers():
         active_tab="issue",
         waiting_batches=count_waiting_batches()
     )
-
-
 
 
 
