@@ -6,7 +6,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from app import db
-from app.models import Promoter, Voucher, Order, Earning
+from app.models import Promoter, Voucher, Order, Earning, OrderPayment
 from app.utils.invoice_pdf import create_invoice_pdf
 
 public_bp = Blueprint('public', __name__, template_folder='templates/public')
@@ -37,76 +37,19 @@ def market():
     vouchers = Voucher.query.filter_by(status='approved_for_market').all()
     return render_template('public/market.html', vouchers=vouchers)
 
-# ───────────────────── صفحة معلومات السند (GET) ───────────
-@public_bp.route('/voucher/<code>', methods=['GET'], endpoint='voucher_details')
-@login_required
-def voucher_details(code):
-    """عرض تفاصيل السند قبل سحبه."""
-    voucher = Voucher.query.filter_by(code=code).first_or_404()
-
-    # يُعرض فقط إذا كان ما زال NEW
-    if voucher.status != 'approved_for_market':
-        flash('⚠️ هذا السند غير متاح حالياً.', 'warning')
-        return redirect(url_for('public.market'))
-
-    # توليد PDF التفعيل الأولي (إذا لم يوجد) لرؤية الـ QR
-    if not voucher.invoice_path:
-        voucher.invoice_path = create_invoice_pdf(voucher)
-        db.session.commit()
-
-    return render_template('public/voucher_details.html', voucher=voucher)
-
-@public_bp.route('/voucher/activate/<code>', methods=['GET', 'POST'], endpoint='activate_voucher')
-@login_required
-def activate_voucher(code):
-    voucher = Voucher.query.filter_by(code=code).first_or_404()
-
-    if voucher.status != 'approved_for_market':
-        flash('السند غير متاح للسحب.', 'warning')
-        return redirect(url_for('public.market'))
-
-    if current_user.role != 'promoter':
-        flash('❌ السحب متاح للمروجين فقط.', 'danger')
-        return redirect(url_for('public.voucher_details', code=code))
-
-    if request.method == 'GET':
-        return render_template('public/activate_confirm.html', voucher=voucher)
-
-    # ✅ إصلاح الربط بالمروج الصحيح (Promoter.id وليس User.id)
-    promoter = Promoter.query.filter_by(user_id=current_user.id).first()
-    if not promoter:
-        flash("لم يتم العثور على حسابك كمروج مرتبط بحسابك.", "danger")
-        return redirect(url_for('public.voucher_details', code=code))
-
-    voucher.status = 'active'
-    voucher.promoter_id = promoter.id
-    db.session.commit()
-
-    flash('✅ تم ربط السند بحسابك كمروج.', 'success')
-    return redirect(url_for('promoter.dashboard'))
-
 # ─────────── التفعيل الثاني: إنشاء الطلب النهائى للجمهور ───────────
 @public_bp.route('/voucher/order/<code>', methods=['GET', 'POST'])
 def confirm_order(code):
     voucher = Voucher.query.filter_by(code=code).first_or_404()
-    
+
     # إذا كان السند مُستخدَمًا بالفعل ➜ وجِّه لصفحة التتبّع
     if voucher.status == 'used':
         order = Order.query.filter_by(voucher_id=voucher.id).first()
         if order:
             return redirect(url_for('public.order_status', token=order.tracking_token))
-        # احتياطًا: لو لم يُعثر على طلب رغم أن السند used
+
         flash('لم يُعثر على طلب مرتبط بهذا السند.', 'warning')
         return redirect(url_for('public.market'))
-
-    # الشرط الحالي يبقى كما هو
-    if voucher.status != 'active':
-        flash('هذا السند غير مفعّل أو تم استخدامه.', 'warning')
-        return redirect(url_for('public.market'))
-
-
-
-
 
     if voucher.status != 'active':
         flash('هذا السند غير مفعّل أو تم استخدامه.', 'warning')
@@ -126,6 +69,9 @@ def confirm_order(code):
         preferred_time = request.form.get('preferred_time', '').strip()
         notes          = request.form.get('notes', '').strip()
 
+        # ملف الإيصال
+        receipt_file = request.files.get('payment_receipt')
+
         # === التحقق من الحقول الإلزامية ================================
         if not cust_name or not cust_phone or not shop_name:
             flash('❌ يجب إدخال الاسم والجوال واسم المحل.', 'danger')
@@ -139,47 +85,74 @@ def confirm_order(code):
             flash('❌ جميع الحقول المطلوبة يجب تعبئتها.', 'danger')
             return redirect(url_for('public.confirm_order', code=code))
 
-        # === إنشاء سجل الطلب وربط المروّج =============================
-        order = Order(
-            voucher_id     = voucher.id,
-            promoter_id    = voucher.promoter_id,
-            quantity       = voucher.quantity,
-            customer_name  = cust_name,
-            customer_phone = cust_phone,
-            shop_name      = shop_name,
-            city           = 'الرياض',
-            address_detail = address_detail or None,
-            maps_link      = maps_link or None,
-            cr_number      = cr_number,
-            vat_number     = vat_number,
-            preferred_time = preferred_time,
-            notes          = notes,
-            status         = 'new'
-            # tracking_token يُنشأ تلقائيًا من default
-        )
-        db.session.add(order)
+        if not receipt_file or not receipt_file.filename:
+            flash('❌ يجب رفع إيصال التحويل.', 'danger')
+            return redirect(url_for('public.confirm_order', code=code))
 
-        # === تحديث السند إلى USED =====================================
-        voucher.status = 'used'
+        try:
+            # === رفع الإيصال إلى Firebase ==============================
+            # بدّل اسم الدالة التالية إلى اسم دالتك الفعلي
+            receipt_url = upload_to_firebase(receipt_file)
 
-        # === تسجيل عمولة المروّج (سجل تتبعي) ==========================
-        db.session.add(Earning(
-            voucher_id      = voucher.id,
-            promoter_id     = voucher.promoter_id,
-            promoter_amount = voucher.factory_commission,
-            factory_amount  = 0.0
-        ))
+            if not receipt_url:
+                flash('❌ تعذر رفع إيصال التحويل.', 'danger')
+                return redirect(url_for('public.confirm_order', code=code))
 
-        db.session.commit()
+            # === إنشاء سجل الطلب وربط المروّج =========================
+            order = Order(
+                voucher_id     = voucher.id,
+                promoter_id    = voucher.promoter_id,
+                quantity       = voucher.quantity,
+                customer_name  = cust_name,
+                customer_phone = cust_phone,
+                shop_name      = shop_name,
+                city           = 'الرياض',
+                address_detail = address_detail or None,
+                maps_link      = maps_link or None,
+                cr_number      = cr_number,
+                vat_number     = vat_number,
+                preferred_time = preferred_time,
+                notes          = notes,
+                status         = 'new'
+            )
+            db.session.add(order)
+            db.session.flush()   # مهم للحصول على order.id
 
-        # === إضافة رابط التتبّع العام ================================
-        track_url = url_for('public.order_status', token=order.tracking_token, _external=True)
-        flash('✅ تم تسجيل الطلب بنجاح.', 'success')
-        flash(f'رابط متابعة الطلب: {track_url}', 'info')
+            # === إنشاء سجل الدفع ======================================
+            payment = OrderPayment(
+                order_id        = order.id,
+                payment_method  = 'bank_transfer',
+                receipt_url     = receipt_url,
+                status          = 'uploaded'
+            )
+            db.session.add(payment)
 
-        return redirect(track_url)
+            # === تحديث السند إلى USED ================================
+            voucher.status = 'used'
 
-    # GET: عرض النموذج للجمهور
+            # === تسجيل عمولة المروّج (سجل تتبعي) =====================
+            db.session.add(Earning(
+                voucher_id      = voucher.id,
+                promoter_id     = voucher.promoter_id,
+                promoter_amount = voucher.factory_commission,
+                factory_amount  = 0.0
+            ))
+
+            db.session.commit()
+
+            # === إضافة رابط التتبّع العام ============================
+            track_url = url_for('public.order_status', token=order.tracking_token, _external=True)
+            flash('✅ تم تسجيل الطلب ورفع الإيصال بنجاح.', 'success')
+            flash(f'رابط متابعة الطلب: {track_url}', 'info')
+
+            return redirect(track_url)
+
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.exception("Error while creating order with payment receipt")
+            flash('❌ حدث خطأ أثناء تسجيل الطلب أو رفع الإيصال.', 'danger')
+            return redirect(url_for('public.confirm_order', code=code))
+
     return render_template('public/confirm_order.html', voucher=voucher)
 
 # ───────────────────── تحميل / معاينة PDF ───────────────────
