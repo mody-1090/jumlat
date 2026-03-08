@@ -118,7 +118,8 @@ class Voucher(db.Model):
     vat_rate           = db.Column(db.Float, default=0.15)
     total_price        = db.Column(db.Float, default=0.0)
     batch_id = db.Column(db.Integer, db.ForeignKey("voucher_batch.id"), nullable=True)
-
+    product_description = db.Column(db.Text, nullable=True)
+    product_image_url = db.Column(db.String(500), nullable=True)
     # جديدة 👇
     admin_note         = db.Column(db.String(256))      # سبب رفض أو ملاحظات الإدارة
     payment_proof_url  = db.Column(db.String(256))      # رابط صورة التحويل
