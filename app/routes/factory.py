@@ -737,3 +737,83 @@ def review_payments():
         .all()
     )
     return render_template('factory/review_payments.html', payments=payments)
+
+
+
+
+
+@factory_bp.route('/payments/<int:payment_id>/approve', methods=['POST'])
+@login_required
+def approve_payment(payment_id):
+    payment = OrderPayment.query.get_or_404(payment_id)
+    order = payment.order
+    voucher = order.voucher
+
+    payment.status = 'approved'
+    order.status = 'confirmed'
+    voucher.status = 'used'
+
+    db.session.commit()
+    flash('✅ تم قبول التحويل وتأكيد الطلب.', 'success')
+    return redirect(url_for('factory.review_payments'))
+
+
+
+
+
+@factory_bp.route('/payments/<int:payment_id>/reject', methods=['POST'])
+@login_required
+def reject_payment(payment_id):
+    payment = OrderPayment.query.get_or_404(payment_id)
+    order = payment.order
+    voucher = order.voucher
+
+    reason = request.form.get('reason', '').strip() or 'الطلب غير مؤكد لعدم وصول الدفعة أو لعدم صحة إيصال التحويل'
+
+    # 1) أرشفة الطلب المرفوض
+    rejected_order = RejectedOrder(
+        voucher_id=voucher.id,
+        voucher_code=voucher.code,
+        promoter_id=order.promoter_id,
+
+        quantity=order.quantity,
+        customer_name=order.customer_name,
+        customer_phone=order.customer_phone,
+        shop_name=order.shop_name,
+
+        city=order.city,
+        address_detail=order.address_detail,
+        maps_link=order.maps_link,
+
+        cr_number=order.cr_number,
+        vat_number=order.vat_number,
+        preferred_time=order.preferred_time,
+        notes=order.notes,
+
+        payment_method=payment.payment_method,
+        receipt_url=payment.receipt_url,
+        payment_status=payment.status,
+
+        reject_reason=reason,
+        rejected_by_user_id=current_user.id,
+
+        original_order_id=order.id,
+        original_payment_id=payment.id
+    )
+    db.session.add(rejected_order)
+
+    # 2) حذف العمولة إن وجدت
+    earning = Earning.query.filter_by(voucher_id=voucher.id).first()
+    if earning:
+        db.session.delete(earning)
+
+    # 3) إعادة السند للحالة المطلوبة
+    voucher.status = 'active'   # أو approved_for_market إذا أردته يرجع للسوق
+
+    # 4) حذف سجل الدفع ثم الطلب
+    db.session.delete(payment)
+    db.session.delete(order)
+
+    db.session.commit()
+    flash('⚠️ تم رفض التحويل وحذف الطلب من السجلات التشغيلية وأرشفته في سجل المرفوضات.', 'warning')
+    return redirect(url_for('factory.review_payments'))
