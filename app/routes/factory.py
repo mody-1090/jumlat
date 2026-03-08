@@ -730,13 +730,38 @@ def print_transfers():
 @factory_bp.route('/payments/review')
 @login_required
 def review_payments():
-    payments = (
-        OrderPayment.query
-        .filter_by(status='uploaded')
-        .order_by(OrderPayment.created_at.desc())
-        .all()
+    status_filter = request.args.get('status', 'uploaded').strip()
+
+    query = OrderPayment.query.order_by(OrderPayment.created_at.desc())
+
+    if status_filter == 'uploaded':
+        query = query.filter(OrderPayment.status == 'uploaded')
+    elif status_filter == 'approved':
+        query = query.filter(OrderPayment.status == 'approved')
+    elif status_filter == 'rejected':
+        query = query.filter(OrderPayment.status == 'rejected')
+    elif status_filter == 'all':
+        pass
+    else:
+        status_filter = 'uploaded'
+        query = query.filter(OrderPayment.status == 'uploaded')
+
+    payments = query.all()
+
+    counts = {
+        'uploaded': OrderPayment.query.filter_by(status='uploaded').count(),
+        'approved': OrderPayment.query.filter_by(status='approved').count(),
+        'rejected': OrderPayment.query.filter_by(status='rejected').count(),
+        'all': OrderPayment.query.count()
+    }
+
+    return render_template(
+        'dashboard_factory/review_payments.html',
+        payments=payments,
+        status_filter=status_filter,
+        counts=counts,
+        active_tab='review_payments'
     )
-    return render_template('dashboard_factory/review_payments.html', payments=payments)
 
 
 
@@ -750,7 +775,7 @@ def approve_payment(payment_id):
     voucher = order.voucher
 
     payment.status = 'approved'
-    order.status = 'confirmed'
+    order.status = 'processing'
     voucher.status = 'used'
 
     db.session.commit()
