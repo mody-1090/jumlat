@@ -1,15 +1,12 @@
 {% extends "shared/base.html" %}
 
-{# ---------------- عنوان الصفحة ---------------- #}
 {% block title %}لوحة التحكم – مصنع جُملة{% endblock %}
 
-{# ---------------- محتوى الصفحة الرئيسي ---------------- #}
 {% block content %}
 
   {# ================= Nav-Tabs أعلى الصفحة ================= #}
   <ul class="nav nav-tabs mb-4">
 
-    {# تبويب إصدار السندات #}
     <li class="nav-item">
       <a class="nav-link {% if active_tab == 'issue' %}active{% endif %}"
          href="{{ url_for('factory.create_vouchers') }}">
@@ -17,91 +14,116 @@
       </a>
     </li>
 
-    {# تبويب دفعات العمولات #}
     <li class="nav-item">
       <a class="nav-link {% if active_tab == 'payments' %}active{% endif %}"
          href="{{ url_for('factory.commission_payments') }}">
-        دفع رسوم المنصة 
+        دفع رسوم المنصة
         {% if waiting_batches|default(0) > 0 %}
           <span class="badge bg-warning text-dark">{{ waiting_batches }}</span>
         {% endif %}
       </a>
     </li>
 
-    {# تبويب متابعة السندات الفردية #}
     <li class="nav-item">
       <a class="nav-link {% if active_tab == 'track' %}active{% endif %}"
-         href="{{ url_for('factory.vouchers_list') }}">   {# ← تم التعديل هنا #}
+         href="{{ url_for('factory.vouchers_list') }}">
         سنداتي
       </a>
     </li>
 
-  </ul>
-  {# ========================================================= #}
+    <li class="nav-item">
+      <a class="nav-link {% if active_tab == 'review_payments' %}active{% endif %}"
+         href="{{ url_for('factory.review_payments') }}">
+        مراجعة التحويلات
+      </a>
+    </li>
 
-  {# ---------------- تخطيط الصفحة: شريط جانبى + محتوى ---------------- #}
+    <li class="nav-item">
+      <a class="nav-link {% if active_tab == 'rejected_orders' %}active{% endif %}"
+         href="{{ url_for('factory.rejected_orders') }}">
+        سجل المرفوضات
+      </a>
+    </li>
+
+  </ul>
+
   <div class="row">
 
-    {# ----- الشريط الجانبى (Sidebar) ----- #}
-    <nav class="col-md-2 bg-light sidebar py-4">
-      <ul class="nav flex-column">
+    {# ----- الشريط الجانبي ----- #}
+    <nav class="col-md-3 col-lg-2 bg-light sidebar py-4 rounded">
+      <ul class="nav flex-column gap-1">
+
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('factory.dashboard') }}">
+          <a class="nav-link {% if active_tab == 'dashboard' %}active fw-bold text-primary{% endif %}"
+             href="{{ url_for('factory.dashboard') }}">
             🏠 الرئيسية
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('factory.vouchers_list') }}">   {# ← تم التعديل هنا أيضًا #}
+          <a class="nav-link {% if active_tab == 'track' %}active fw-bold text-primary{% endif %}"
+             href="{{ url_for('factory.vouchers_list') }}">
             📋 سنداتي
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('factory.create_vouchers') }}">
+          <a class="nav-link {% if active_tab == 'issue' %}active fw-bold text-primary{% endif %}"
+             href="{{ url_for('factory.create_vouchers') }}">
             ➕ إصدار سندات
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('factory.orders') }}">
+          <a class="nav-link {% if active_tab == 'orders' %}active fw-bold text-primary{% endif %}"
+             href="{{ url_for('factory.orders') }}">
             📦 الطلبات
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('factory.factory_commission_invoices') }}">
-            📄 فواتيري (رسوم المنصه)
+          <a class="nav-link {% if active_tab == 'invoices' %}active fw-bold text-primary{% endif %}"
+             href="{{ url_for('factory.factory_commission_invoices') }}">
+            📄 فواتيري (رسوم المنصة)
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('factory.orders_promoters') }}">
+          <a class="nav-link {% if active_tab == 'financial_settlement' %}active fw-bold text-primary{% endif %}"
+             href="{{ url_for('factory.orders_promoters') }}">
             💰 تسوية مالية
           </a>
         </li>
-<li>
-  <a href="{{ url_for('factory.review_payments') }}">مراجعة التحويلات</a>
-</li>
 
-        <a href="{{ url_for('factory.rejected_orders') }}" class="btn btn-outline-danger">
-  <i class="bi bi-x-circle"></i>
-  سجل المرفوضات
-</a>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('factory.settings') }}">
+          <a class="nav-link {% if active_tab == 'review_payments' %}active fw-bold text-primary{% endif %}"
+             href="{{ url_for('factory.review_payments') }}">
+            💳 مراجعة التحويلات
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if active_tab == 'rejected_orders' %}active fw-bold text-danger{% endif %}"
+             href="{{ url_for('factory.rejected_orders') }}">
+            ❌ سجل المرفوضات
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if active_tab == 'settings' %}active fw-bold text-primary{% endif %}"
+             href="{{ url_for('factory.settings') }}">
             ⚙️ الإعدادات
           </a>
         </li>
+
       </ul>
     </nav>
 
-    {# ----- منطقة المحتوى الرئيسى ----- #}
-    <main class="col-md-10 py-4">
+    {# ----- المحتوى الرئيسي ----- #}
+    <main class="col-md-9 col-lg-10 py-4">
       {% block factory_content %}{% endblock %}
     </main>
 
   </div>
-  {# ------------------------------------------------------------------- #}
 
 {% endblock %}
