@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 from app import db
 from app.models import Promoter, Voucher, Order, Earning, OrderPayment
 from app.utils.invoice_pdf import create_invoice_pdf
-
+from app.utils.s3_upload import upload_file_to_s3
 public_bp = Blueprint('public', __name__, template_folder='templates/public')
 
 # ───────────────────── الصفحات العامة ──────────────────────
