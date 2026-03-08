@@ -1,0 +1,72 @@
+{% extends "shared/base.html" %}
+
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-4">مراجعة التحويلات</h3>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      {% for c, m in msgs %}
+        <div class="alert alert-{{ c }} alert-dismissible fade show">
+          {{ m }}
+          <button class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if payments %}
+    <div class="table-responsive">
+      <table class="table table-bordered bg-white align-middle">
+        <thead>
+          <tr>
+            <th>رقم السند</th>
+            <th>العميل</th>
+            <th>المحل</th>
+            <th>الكمية</th>
+            <th>الإيصال</th>
+            <th>الحالة</th>
+            <th>الإجراء</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment in payments %}
+          <tr>
+            <td>{{ payment.order.voucher.code }}</td>
+            <td>{{ payment.order.customer_name }}</td>
+            <td>{{ payment.order.shop_name }}</td>
+            <td>{{ payment.order.quantity }}</td>
+            <td>
+              {% if payment.receipt_url %}
+                <a href="{{ payment.receipt_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                  عرض الإيصال
+                </a>
+              {% else %}
+                <span class="text-muted">لا يوجد</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-warning text-dark">{{ payment.status }}</span>
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('factory.approve_payment', payment_id=payment.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-success">قبول</button>
+              </form>
+
+              <form method="POST" action="{{ url_for('factory.reject_payment', payment_id=payment.id) }}" class="d-inline mt-1">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="reason" class="form-control form-control-sm my-1" placeholder="سبب الرفض">
+                <button class="btn btn-sm btn-danger">رفض</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">لا توجد تحويلات بانتظار المراجعة.</div>
+  {% endif %}
+</div>
+{% endblock %}
