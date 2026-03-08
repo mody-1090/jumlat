@@ -736,7 +736,7 @@ def review_payments():
         .order_by(OrderPayment.created_at.desc())
         .all()
     )
-    return render_template('factory/review_payments.html', payments=payments)
+    return render_template('dashboard_factory/review_payments.html', payments=payments)
 
 
 
@@ -825,4 +825,4 @@ def reject_payment(payment_id):
 @login_required
 def rejected_orders():
     rejected_orders = RejectedOrder.query.order_by(RejectedOrder.rejected_at.desc()).all()
-    return render_template('factory/rejected_orders.html', rejected_orders=rejected_orders)
+    return render_template('dashboard_factory/rejected_orders.html', rejected_orders=rejected_orders)
