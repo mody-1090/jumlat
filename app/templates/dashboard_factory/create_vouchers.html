@@ -22,7 +22,7 @@
   </div>
 </div>
 
-<form method="POST" class="row g-3" id="issue-form">
+<form method="POST" enctype="multipart/form-data" class="row g-3" id="issue-form">
   {{ form.hidden_tag() }}
 
   <!-- اسم المنتج -->
@@ -55,6 +55,32 @@
     {% for e in form.count.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
   </div>
 
+  <!-- وصف المنتج -->
+  <div class="col-12">
+    <label class="form-label">وصف المنتج</label>
+    <textarea name="product_description"
+              class="form-control"
+              rows="3"
+              placeholder="اكتب وصفًا مختصرًا للمنتج ليظهر داخل السند وملف الـ PDF، مثل: عبوة 24 حبة، مناسبة للبقالات، تخزين جاف، حجم 330 مل..."></textarea>
+    <small class="text-muted d-block mt-1">
+      هذا الوصف سيظهر داخل السند وداخل ملف PDF.
+    </small>
+  </div>
+
+  <!-- صورة المنتج -->
+  <div class="col-md-6">
+    <label class="form-label">صورة المنتج</label>
+    <input type="file"
+           name="product_image"
+           id="product_image"
+           class="form-control"
+           accept=".jpg,.jpeg,.png,.webp">
+    <small class="text-muted d-block mt-1">
+      يمكنك رفع صورة المنتج لتظهر داخل ملف السند PDF.
+    </small>
+    <div id="selected_image_name" class="small text-success mt-2"></div>
+  </div>
+
   <!-- سعر الوحدة (لكل كرتون) بدون ضريبة -->
   <div class="col-md-4">
     {{ form.price_per_unit.label(class="form-label") }}
@@ -70,8 +96,7 @@
     {{ form.vat_rate.label(class="form-label") }}
     {{ form.vat_rate(class="form-control", readonly=true, id="vat_rate") }}
     <small class="text-muted d-block mt-1">
-      <!-- ★ توضيح أنها قيمة عشرية -->
-      تُكتب كنسبة عشرية: <strong>0.15 = 15%</strong>. <!-- ★ -->
+      تُكتب كنسبة عشرية: <strong>0.15 = 15%</strong>.
     </small>
     {% for e in form.vat_rate.errors %}<small class="text-danger">{{ e }}</small>{% endfor %}
   </div>
@@ -150,6 +175,9 @@
   const rules   = document.getElementById('rules_msg');
   const submit  = document.getElementById('submit_btn');
 
+  const imageInput = document.getElementById('product_image');
+  const imageName  = document.getElementById('selected_image_name');
+
   const MIN_QTY_PER_VOUCHER = 50;
   const MIN_TOTAL_UNITS     = 5000;
 
@@ -162,15 +190,15 @@
     const q   = Math.floor(parseNum(qtyEl));
     const c   = Math.floor(parseNum(cntEl));
     const ppu = parseNum(ppuEl);
-    const vat = parseNum(vatEl, 0.15); // ★ افتراضي 0.15 كنسبة عشرية
+    const vat = parseNum(vatEl, 0.15);
 
     // إجمالي الكراتين
     const totalUnits = (q > 0 && c > 0) ? (q * c) : 0;
     totalEl.textContent = totalUnits.toLocaleString('ar-EG');
 
-    // سعر الكرتون مع الضريبة (vat عشرية)
+    // سعر الكرتون مع الضريبة
     if (!isNaN(ppu)) {
-      const gross = ppu * (1 + vat); // ★ لا تقسيم على 100
+      const gross = ppu * (1 + vat);
       withVat.textContent = gross.toFixed(2) + ' ر.س';
     } else {
       withVat.textContent = '—';
@@ -194,13 +222,21 @@
     }
   }
 
-  // ربط الأحداث
   ['input','change'].forEach(evt => {
     qtyEl?.addEventListener(evt, validate);
     cntEl?.addEventListener(evt, validate);
     ppuEl?.addEventListener(evt, validate);
     vatEl?.addEventListener(evt, validate);
   });
+
+  imageInput?.addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+      imageName.textContent = 'تم اختيار الصورة: ' + this.files[0].name;
+    } else {
+      imageName.textContent = '';
+    }
+  });
+
   window.addEventListener('load', validate);
 </script>
 {% endblock %}
