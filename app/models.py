@@ -379,6 +379,26 @@ class VoucherBatch(db.Model):
 
 
 
+class OrderPayment(db.Model):
+    __tablename__ = 'order_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id', ondelete='CASCADE'), nullable=False, unique=True)
+
+    payment_method = db.Column(db.String(30), nullable=False, default='bank_transfer')
+    receipt_url = db.Column(db.String(500), nullable=True)
+    status = db.Column(db.String(30), nullable=False, default='uploaded')  # uploaded / approved / rejected
+    note = db.Column(db.String(255), nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+
+    order = db.relationship(
+        'Order',
+        backref=db.backref('payment', uselist=False, passive_deletes=True)
+    )
+
+
 class GlobalSetting(db.Model):
     __tablename__ = "global_settings"
     id = db.Column(db.Integer, primary_key=True)
