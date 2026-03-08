@@ -36,7 +36,53 @@ def contact():
 def market():
     vouchers = Voucher.query.filter_by(status='approved_for_market').all()
     return render_template('public/market.html', vouchers=vouchers)
+# ───────────────────── صفحة معلومات السند (GET) ───────────
+@public_bp.route('/voucher/<code>', methods=['GET'], endpoint='voucher_details')
+@login_required
+def voucher_details(code):
+    """عرض تفاصيل السند قبل سحبه."""
+    voucher = Voucher.query.filter_by(code=code).first_or_404()
 
+    # يُعرض فقط إذا كان ما زال NEW
+    if voucher.status != 'approved_for_market':
+        flash('⚠️ هذا السند غير متاح حالياً.', 'warning')
+        return redirect(url_for('public.market'))
+
+    # توليد PDF التفعيل الأولي (إذا لم يوجد) لرؤية الـ QR
+    if not voucher.invoice_path:
+        voucher.invoice_path = create_invoice_pdf(voucher)
+        db.session.commit()
+
+    return render_template('public/voucher_details.html', voucher=voucher)
+
+@public_bp.route('/voucher/activate/<code>', methods=['GET', 'POST'], endpoint='activate_voucher')
+@login_required
+def activate_voucher(code):
+    voucher = Voucher.query.filter_by(code=code).first_or_404()
+
+    if voucher.status != 'approved_for_market':
+        flash('السند غير متاح للسحب.', 'warning')
+        return redirect(url_for('public.market'))
+
+    if current_user.role != 'promoter':
+        flash('❌ السحب متاح للمروجين فقط.', 'danger')
+        return redirect(url_for('public.voucher_details', code=code))
+
+    if request.method == 'GET':
+        return render_template('public/activate_confirm.html', voucher=voucher)
+
+    # ✅ إصلاح الربط بالمروج الصحيح (Promoter.id وليس User.id)
+    promoter = Promoter.query.filter_by(user_id=current_user.id).first()
+    if not promoter:
+        flash("لم يتم العثور على حسابك كمروج مرتبط بحسابك.", "danger")
+        return redirect(url_for('public.voucher_details', code=code))
+
+    voucher.status = 'active'
+    voucher.promoter_id = promoter.id
+    db.session.commit()
+
+    flash('✅ تم ربط السند بحسابك كمروج.', 'success')
+    return redirect(url_for('promoter.dashboard'))
 # ─────────── التفعيل الثاني: إنشاء الطلب النهائى للجمهور ───────────
 @public_bp.route('/voucher/order/<code>', methods=['GET', 'POST'])
 def confirm_order(code):
