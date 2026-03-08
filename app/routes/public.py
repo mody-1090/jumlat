@@ -90,9 +90,8 @@ def confirm_order(code):
             return redirect(url_for('public.confirm_order', code=code))
 
         try:
-            # === رفع الإيصال إلى Firebase ==============================
-            # بدّل اسم الدالة التالية إلى اسم دالتك الفعلي
-            receipt_url = upload_to_firebase(receipt_file)
+            # === رفع الإيصال إلى S3 / R2 ===============================
+            receipt_url = upload_file_to_s3(receipt_file, folder="order-receipts")
 
             if not receipt_url:
                 flash('❌ تعذر رفع إيصال التحويل.', 'danger')
@@ -116,21 +115,21 @@ def confirm_order(code):
                 status         = 'new'
             )
             db.session.add(order)
-            db.session.flush()   # مهم للحصول على order.id
+            db.session.flush()
 
             # === إنشاء سجل الدفع ======================================
             payment = OrderPayment(
-                order_id        = order.id,
-                payment_method  = 'bank_transfer',
-                receipt_url     = receipt_url,
-                status          = 'uploaded'
+                order_id       = order.id,
+                payment_method = 'bank_transfer',
+                receipt_url    = receipt_url,
+                status         = 'uploaded'
             )
             db.session.add(payment)
 
-            # === تحديث السند إلى USED ================================
+            # === تحديث السند إلى used =================================
             voucher.status = 'used'
 
-            # === تسجيل عمولة المروّج (سجل تتبعي) =====================
+            # === تسجيل عمولة المروّج ==================================
             db.session.add(Earning(
                 voucher_id      = voucher.id,
                 promoter_id     = voucher.promoter_id,
@@ -140,21 +139,19 @@ def confirm_order(code):
 
             db.session.commit()
 
-            # === إضافة رابط التتبّع العام ============================
             track_url = url_for('public.order_status', token=order.tracking_token, _external=True)
             flash('✅ تم تسجيل الطلب ورفع الإيصال بنجاح.', 'success')
             flash(f'رابط متابعة الطلب: {track_url}', 'info')
 
             return redirect(track_url)
 
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             current_app.logger.exception("Error while creating order with payment receipt")
             flash('❌ حدث خطأ أثناء تسجيل الطلب أو رفع الإيصال.', 'danger')
             return redirect(url_for('public.confirm_order', code=code))
 
     return render_template('public/confirm_order.html', voucher=voucher)
-
 # ───────────────────── تحميل / معاينة PDF ───────────────────
 @public_bp.route('/voucher/invoice/<code>')
 @login_required
