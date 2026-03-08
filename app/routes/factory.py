@@ -5,7 +5,8 @@ from flask_login import login_required, current_user
 from app import db
 from app.forms.factory.create_voucher_form import VoucherForm
 from app.forms.factory.settings_form import FactorySettingsForm
-from app.models import CommissionInvoice, ConfirmedEarning, Order, PayoutStatus, Promoter, Voucher, Factory, Earning, VoucherBatch, Withdrawal
+from app.models import CommissionInvoice, ConfirmedEarning, Order, PayoutStatus, Promoter, Voucher, Factory, Earning, VoucherBatch, Withdrawal,  OrderPayment,
+    RejectedOrder
 from datetime import datetime
 from app.utils.generate_qr import generate_qr_code
 from sqlalchemy import and_, func
@@ -817,3 +818,12 @@ def reject_payment(payment_id):
     db.session.commit()
     flash('⚠️ تم رفض التحويل وحذف الطلب من السجلات التشغيلية وأرشفته في سجل المرفوضات.', 'warning')
     return redirect(url_for('factory.review_payments'))
+
+
+
+
+@factory_bp.route('/payments/rejected')
+@login_required
+def rejected_orders():
+    rejected_orders = RejectedOrder.query.order_by(RejectedOrder.rejected_at.desc()).all()
+    return render_template('factory/rejected_orders.html', rejected_orders=rejected_orders)
