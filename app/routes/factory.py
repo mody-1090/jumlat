@@ -5,8 +5,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.forms.factory.create_voucher_form import VoucherForm
 from app.forms.factory.settings_form import FactorySettingsForm
-from app.models import CommissionInvoice, ConfirmedEarning, Order, PayoutStatus, Promoter, Voucher, Factory, Earning, VoucherBatch, Withdrawal,  OrderPayment,
-    RejectedOrder
+from app.models import CommissionInvoice, ConfirmedEarning, Order, PayoutStatus, Promoter, Voucher, Factory, Earning, VoucherBatch, Withdrawal,  OrderPayment,RejectedOrder
 from datetime import datetime
 from app.utils.generate_qr import generate_qr_code
 from sqlalchemy import and_, func
