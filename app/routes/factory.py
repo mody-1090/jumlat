@@ -722,3 +722,18 @@ def print_transfers():
 
     return render_template('dashboard_factory/print_transfers.html',
                            transfers=transfers)
+
+
+
+
+
+@factory_bp.route('/payments/review')
+@login_required
+def review_payments():
+    payments = (
+        OrderPayment.query
+        .filter_by(status='uploaded')
+        .order_by(OrderPayment.created_at.desc())
+        .all()
+    )
+    return render_template('factory/review_payments.html', payments=payments)
