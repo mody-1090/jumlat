@@ -1,0 +1,48 @@
+{% extends "shared/base.html" %}
+
+{% block content %}
+<div class="container py-4">
+  <h3 class="mb-4">الطلبات والتحويلات المرفوضة</h3>
+
+  {% if rejected_orders %}
+    <div class="table-responsive">
+      <table class="table table-bordered bg-white align-middle">
+        <thead>
+          <tr>
+            <th>رقم السند</th>
+            <th>العميل</th>
+            <th>المحل</th>
+            <th>الكمية</th>
+            <th>الإيصال</th>
+            <th>سبب الرفض</th>
+            <th>تاريخ الرفض</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in rejected_orders %}
+          <tr>
+            <td>{{ item.voucher_code }}</td>
+            <td>{{ item.customer_name }}</td>
+            <td>{{ item.shop_name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>
+              {% if item.receipt_url %}
+                <a href="{{ item.receipt_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                  عرض الإيصال
+                </a>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>{{ item.reject_reason or '—' }}</td>
+            <td>{{ item.rejected_at.strftime('%Y-%m-%d %H:%M') if item.rejected_at else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">لا توجد طلبات مرفوضة.</div>
+  {% endif %}
+</div>
+{% endblock %}
