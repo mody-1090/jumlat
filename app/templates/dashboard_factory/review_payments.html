@@ -1,7 +1,16 @@
-{% extends "dashboard_factory/base.html" %}
+{% extends "dashboard_factory/base_factory.html" %}
+
+{% block title %}مراجعة التحويلات{% endblock %}
+
 {% block factory_content %}
-<div class="container py-4">
-  <h3 class="mb-4">مراجعة التحويلات</h3>
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="mb-1">مراجعة التحويلات</h3>
+      <p class="text-muted mb-0">مراجعة الطلبات المرفق معها إيصال تحويل</p>
+    </div>
+  </div>
 
   {% with msgs = get_flashed_messages(with_categories=true) %}
     {% if msgs %}
@@ -14,58 +23,171 @@
     {% endif %}
   {% endwith %}
 
-  {% if payments %}
-    <div class="table-responsive">
-      <table class="table table-bordered bg-white align-middle">
-        <thead>
-          <tr>
-            <th>رقم السند</th>
-            <th>العميل</th>
-            <th>المحل</th>
-            <th>الكمية</th>
-            <th>الإيصال</th>
-            <th>الحالة</th>
-            <th>الإجراء</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for payment in payments %}
-          <tr>
-            <td>{{ payment.order.voucher.code }}</td>
-            <td>{{ payment.order.customer_name }}</td>
-            <td>{{ payment.order.shop_name }}</td>
-            <td>{{ payment.order.quantity }}</td>
-            <td>
-              {% if payment.receipt_url %}
-                <a href="{{ payment.receipt_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                  عرض الإيصال
-                </a>
-              {% else %}
-                <span class="text-muted">لا يوجد</span>
-              {% endif %}
-            </td>
-            <td>
-              <span class="badge bg-warning text-dark">{{ payment.status }}</span>
-            </td>
-            <td>
-              <form method="POST" action="{{ url_for('factory.approve_payment', payment_id=payment.id) }}" class="d-inline">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn btn-sm btn-success">قبول</button>
-              </form>
+  {# ====== تبويبات الحالات ====== #}
+  <ul class="nav nav-pills mb-4 gap-2">
+    <li class="nav-item">
+      <a class="nav-link {% if status_filter == 'uploaded' %}active{% endif %}"
+         href="{{ url_for('factory.review_payments', status='uploaded') }}">
+        بانتظار المراجعة
+        <span class="badge bg-light text-dark ms-1">{{ counts.uploaded }}</span>
+      </a>
+    </li>
 
-              <form method="POST" action="{{ url_for('factory.reject_payment', payment_id=payment.id) }}" class="d-inline mt-1">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="text" name="reason" class="form-control form-control-sm my-1" placeholder="سبب الرفض">
-                <button class="btn btn-sm btn-danger">رفض</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <li class="nav-item">
+      <a class="nav-link {% if status_filter == 'approved' %}active{% endif %}"
+         href="{{ url_for('factory.review_payments', status='approved') }}">
+        المقبولة
+        <span class="badge bg-light text-dark ms-1">{{ counts.approved }}</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link {% if status_filter == 'rejected' %}active{% endif %}"
+         href="{{ url_for('factory.review_payments', status='rejected') }}">
+        المرفوضة
+        <span class="badge bg-light text-dark ms-1">{{ counts.rejected }}</span>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link {% if status_filter == 'all' %}active{% endif %}"
+         href="{{ url_for('factory.review_payments', status='all') }}">
+        الكل
+        <span class="badge bg-light text-dark ms-1">{{ counts.all }}</span>
+      </a>
+    </li>
+  </ul>
+
+  {% if payments %}
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>السند</th>
+                <th>العميل</th>
+                <th>المحل</th>
+                <th>المروج</th>
+                <th>الكمية</th>
+                <th>الإيصال</th>
+                <th>الحالة</th>
+                <th style="min-width: 260px;">الإجراء</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for payment in payments %}
+              <tr>
+                <td>
+                  {% if payment.order and payment.order.voucher %}
+                    <strong>{{ payment.order.voucher.code }}</strong>
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if payment.order %}
+                    {{ payment.order.customer_name }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if payment.order %}
+                    {{ payment.order.shop_name }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if payment.order and payment.order.promoter and payment.order.promoter.user %}
+                    {{ payment.order.promoter.user.name }}
+                  {% elif payment.order and payment.order.promoter %}
+                    {{ payment.order.promoter.id }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if payment.order %}
+                    {{ payment.order.quantity }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if payment.receipt_url %}
+                    <a href="{{ payment.receipt_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                      عرض الإيصال
+                    </a>
+                  {% else %}
+                    <span class="text-muted">لا يوجد</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if payment.status == 'uploaded' %}
+                    <span class="badge bg-warning text-dark">بانتظار المراجعة</span>
+                  {% elif payment.status == 'approved' %}
+                    <span class="badge bg-success">مقبول</span>
+                  {% elif payment.status == 'rejected' %}
+                    <span class="badge bg-danger">مرفوض</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ payment.status }}</span>
+                  {% endif %}
+
+                  {% if payment.status == 'rejected' and payment.note %}
+                    <div class="small text-danger mt-2">
+                      <strong>سبب الرفض:</strong> {{ payment.note }}
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if payment.status == 'uploaded' %}
+                    <div class="d-flex flex-column gap-2">
+
+                      <form method="POST" action="{{ url_for('factory.approve_payment', payment_id=payment.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-success w-100">
+                          قبول التحويل
+                        </button>
+                      </form>
+
+                      <form method="POST" action="{{ url_for('factory.reject_payment', payment_id=payment.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="text"
+                               name="reason"
+                               class="form-control form-control-sm mb-2"
+                               placeholder="سبب الرفض"
+                               required>
+                        <button class="btn btn-sm btn-danger w-100">
+                          رفض التحويل
+                        </button>
+                      </form>
+
+                    </div>
+                  {% else %}
+                    <span class="text-muted">تمت المراجعة</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   {% else %}
-    <div class="alert alert-info">لا توجد تحويلات بانتظار المراجعة.</div>
+    <div class="alert alert-info">
+      لا توجد تحويلات ضمن هذا التبويب.
+    </div>
   {% endif %}
+
 </div>
 {% endblock %}
