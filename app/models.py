@@ -404,3 +404,42 @@ class GlobalSetting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(50), unique=True, nullable=False)
     value = db.Column(db.String(200), nullable=False)
+
+
+
+class RejectedOrder(db.Model):
+    __tablename__ = 'rejected_orders'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    voucher_id = db.Column(db.Integer, nullable=False)
+    voucher_code = db.Column(db.String(100), nullable=True)
+    promoter_id = db.Column(db.Integer, nullable=True)
+
+    quantity = db.Column(db.Integer, nullable=False)
+
+    customer_name = db.Column(db.String(128), nullable=False)
+    customer_phone = db.Column(db.String(32), nullable=False)
+    shop_name = db.Column(db.String(120), nullable=False)
+
+    city = db.Column(db.String(30), nullable=True)
+    address_detail = db.Column(db.String(255), nullable=True)
+    maps_link = db.Column(db.String(255), nullable=True)
+
+    cr_number = db.Column(db.String(50), nullable=True)
+    vat_number = db.Column(db.String(50), nullable=True)
+    preferred_time = db.Column(db.String(80), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+
+    payment_method = db.Column(db.String(30), nullable=True)
+    receipt_url = db.Column(db.String(500), nullable=True)
+    payment_status = db.Column(db.String(30), nullable=True)
+
+    reject_reason = db.Column(db.String(255), nullable=True)
+    rejected_by_user_id = db.Column(db.Integer, nullable=True)
+
+    original_order_id = db.Column(db.Integer, nullable=True)
+    original_payment_id = db.Column(db.Integer, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    rejected_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
