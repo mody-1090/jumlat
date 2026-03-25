@@ -239,3 +239,8 @@ def terms():
 @public_bp.route("/privacy")
 def privacy():
     return render_template("public/privacy.html")
+
+
+@public_bp.route('/promoter-guide')
+def promoter_guide():
+    return render_template('public/promoter_guide.html')
