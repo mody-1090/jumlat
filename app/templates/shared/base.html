@@ -209,6 +209,9 @@
           <li class="nav-item"><a class="nav-link" href="{{ url_for('public.about') }}">عن المنصة</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('public.market') }}">سوق سندات البضائع</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('public.contact') }}">تواصل معنا</a></li>
+          <li class="nav-item">
+  <a class="nav-link" href="{{ url_for('public.promoter_guide') }}">طريقة العمل للمروّج</a>
+</li>
         </ul>
         <div class="d-flex ms-auto">
           {% if current_user.is_authenticated %}
