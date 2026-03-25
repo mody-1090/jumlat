@@ -4,18 +4,7 @@
 
 {% block content %}
 <h2 class="my-4 text-center">سوق السندات المتاحة</h2>
-<div class="card shadow-sm border-0 mb-4">
-  <div class="card-body text-center py-4">
-    <h4 class="fw-bold mb-2">دليل المروّج</h4>
-    <p class="text-muted mb-3">
-      جديد في جُملة؟ اقرأ طريقة عمل المروّج لتعرف كيف تختار العميل المناسب،
-      وكيف تبدأ بكمية صغيرة، وكيف تحوّل السند إلى طلب فعلي.
-    </p>
-    <a href="{{ url_for('public.promoter_guide') }}" class="btn btn-primary px-4">
-      اقرأ دليل المروّج
-    </a>
-  </div>
-</div>
+
 {# ─── شريط المعلومات (Ticker) باللون الأخضر ─── #}
 {% if vouchers %}
   <div class="bg-success text-white py-2 mb-3">
@@ -55,13 +44,17 @@
           {% for product, prod_items in items|groupby('product') %}
             {% set ns.pid = ns.pid + 1 %}
             {% set tid = fgid ~ '-tab' ~ ns.pid %}
+            {% set total_cartons = prod_items | sum(attribute='quantity') %}
+
             <li class="nav-item" role="presentation">
               <button class="nav-link {% if loop.first %}active{% endif %}"
                       id="{{ tid }}-pill"
                       data-bs-toggle="pill"
                       data-bs-target="#{{ tid }}"
                       type="button" role="tab">
-                {{ product }} <span class="badge bg-secondary">{{ prod_items|length }}</span>
+                {{ product }}
+                <span class="badge bg-success ms-1">{{ total_cartons }} كرتون</span>
+                <span class="badge bg-secondary ms-1">{{ prod_items|length }} سند</span>
               </button>
             </li>
           {% endfor %}
@@ -146,38 +139,49 @@
     body.classList.toggle('d-none');
     btn.textContent = body.classList.contains('d-none') ? '▼' : '▲';
   }
-  document.querySelectorAll('.toggle-f').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      e.preventDefault(); e.stopPropagation();
+
+  document.querySelectorAll('.toggle-f').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
       toggleGroup(btn.dataset.fgid);
     });
   });
-  document.querySelectorAll('.card-header[data-fgid]').forEach(h=>{
-    h.addEventListener('click', e=>{
-      if(e.target.closest('.toggle-f')) return;
+
+  document.querySelectorAll('.card-header[data-fgid]').forEach(h => {
+    h.addEventListener('click', e => {
+      if (e.target.closest('.toggle-f')) return;
       toggleGroup(h.dataset.fgid);
     });
   });
 
   // "عرض المزيد"/"إخفاء" بخطوات 20
-  document.querySelectorAll('.show-more-btn').forEach(btn=>{
-    const limit = parseInt(btn.dataset.limit,10);
-    btn.addEventListener('click',()=>{
+  document.querySelectorAll('.show-more-btn').forEach(btn => {
+    const limit = parseInt(btn.dataset.limit, 10);
+
+    btn.addEventListener('click', () => {
       const rows = Array.from(btn.closest('table').querySelectorAll('tr.extra-row'));
-      if(!btn.classList.contains('expanded')){
-        let hidden = rows.filter(r=>r.classList.contains('d-none'));
-        const toShow = hidden.slice(0,limit);
-        toShow.forEach(r=>r.classList.remove('d-none'));
-        hidden = rows.filter(r=>r.classList.contains('d-none'));
-        if(hidden.length>0) btn.textContent = `عرض المزيد (${hidden.length}+)`;
-        else{ btn.textContent='إخفاء'; btn.classList.add('expanded'); }
+
+      if (!btn.classList.contains('expanded')) {
+        let hidden = rows.filter(r => r.classList.contains('d-none'));
+        const toShow = hidden.slice(0, limit);
+        toShow.forEach(r => r.classList.remove('d-none'));
+
+        hidden = rows.filter(r => r.classList.contains('d-none'));
+        if (hidden.length > 0) {
+          btn.textContent = `عرض المزيد (${hidden.length}+)`;
+        } else {
+          btn.textContent = 'إخفاء';
+          btn.classList.add('expanded');
+        }
       } else {
-        rows.forEach(r=>r.classList.add('d-none'));
-        const first = rows.slice(0,limit);
-        first.forEach(r=>r.classList.remove('d-none'));
+        rows.forEach(r => r.classList.add('d-none'));
+        const first = rows.slice(0, limit);
+        first.forEach(r => r.classList.remove('d-none'));
+
         const rem = rows.length - limit;
         btn.classList.remove('expanded');
-        btn.textContent = rem>0 ? `عرض المزيد (${rem}+)` : 'عرض المزيد';
+        btn.textContent = rem > 0 ? `عرض المزيد (${rem}+)` : 'عرض المزيد';
       }
     });
   });
