@@ -5,7 +5,6 @@
 {% block content %}
 <h2 class="my-4 text-center">سوق السندات المتاحة</h2>
 
-{# ─── شريط المعلومات (Ticker) باللون الأخضر ─── #}
 {% if vouchers %}
   <div class="bg-success text-white py-2 mb-3">
     <marquee behavior="scroll" direction="left" scrollamount="5">
@@ -40,11 +39,12 @@
 
       <div class="card-body d-none" id="{{ fgid }}">
         <ul class="nav nav-pills mb-3" id="pills-{{ fgid }}" role="tablist">
+
           {% set ns.pid = 0 %}
           {% for product, prod_items in items|groupby('product') %}
             {% set ns.pid = ns.pid + 1 %}
             {% set tid = fgid ~ '-tab' ~ ns.pid %}
-            {% set total_cartons = prod_items | sum(attribute='quantity') %}
+            {% set first_voucher = prod_items[0] %}
 
             <li class="nav-item" role="presentation">
               <button class="nav-link {% if loop.first %}active{% endif %}"
@@ -52,11 +52,19 @@
                       data-bs-toggle="pill"
                       data-bs-target="#{{ tid }}"
                       type="button" role="tab">
+
                 {{ product }}
-                <span class="badge bg-success ms-1">{{ total_cartons }} كرتون</span>
-                <span class="badge bg-secondary ms-1">{{ prod_items|length }} سند</span>
+                <span class="badge bg-info ms-1">
+                  {{ first_voucher.quantity }} كراتين في كل سند
+                </span>
+
+                <span class="badge bg-secondary ms-1">
+                  {{ prod_items|length }} سندات
+                </span>
+
               </button>
             </li>
+
           {% endfor %}
         </ul>
 
@@ -106,6 +114,7 @@
                         </td>
                       </tr>
                     {% endfor %}
+
                     {% if total > LIMIT %}
                       <tr>
                         <td colspan="6" class="text-center">
@@ -116,6 +125,7 @@
                         </td>
                       </tr>
                     {% endif %}
+
                   </tbody>
                 </table>
               </div>
@@ -123,6 +133,7 @@
             </div>
           {% endfor %}
         </div>
+
       </div>
     </div>
   {% endfor %}
@@ -131,59 +142,57 @@
 {% endif %}
 
 <script>
-  // طي/إظهار البطاقات
-  function toggleGroup(gid) {
-    const body = document.getElementById(gid);
-    const btn  = document.querySelector('.toggle-f[data-fgid="' + gid + '"]');
-    if (!body || !btn) return;
-    body.classList.toggle('d-none');
-    btn.textContent = body.classList.contains('d-none') ? '▼' : '▲';
-  }
+function toggleGroup(gid) {
+  const body = document.getElementById(gid);
+  const btn  = document.querySelector('.toggle-f[data-fgid="' + gid + '"]');
+  if (!body || !btn) return;
+  body.classList.toggle('d-none');
+  btn.textContent = body.classList.contains('d-none') ? '▼' : '▲';
+}
 
-  document.querySelectorAll('.toggle-f').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleGroup(btn.dataset.fgid);
-    });
+document.querySelectorAll('.toggle-f').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    toggleGroup(btn.dataset.fgid);
   });
+});
 
-  document.querySelectorAll('.card-header[data-fgid]').forEach(h => {
-    h.addEventListener('click', e => {
-      if (e.target.closest('.toggle-f')) return;
-      toggleGroup(h.dataset.fgid);
-    });
+document.querySelectorAll('.card-header[data-fgid]').forEach(h=>{
+  h.addEventListener('click', e=>{
+    if(e.target.closest('.toggle-f')) return;
+    toggleGroup(h.dataset.fgid);
   });
+});
 
-  // "عرض المزيد"/"إخفاء" بخطوات 20
-  document.querySelectorAll('.show-more-btn').forEach(btn => {
-    const limit = parseInt(btn.dataset.limit, 10);
+document.querySelectorAll('.show-more-btn').forEach(btn=>{
+  const limit = parseInt(btn.dataset.limit,10);
+  btn.addEventListener('click',()=>{
+    const rows = Array.from(btn.closest('table').querySelectorAll('tr.extra-row'));
 
-    btn.addEventListener('click', () => {
-      const rows = Array.from(btn.closest('table').querySelectorAll('tr.extra-row'));
+    if(!btn.classList.contains('expanded')){
+      let hidden = rows.filter(r=>r.classList.contains('d-none'));
+      const toShow = hidden.slice(0,limit);
+      toShow.forEach(r=>r.classList.remove('d-none'));
 
-      if (!btn.classList.contains('expanded')) {
-        let hidden = rows.filter(r => r.classList.contains('d-none'));
-        const toShow = hidden.slice(0, limit);
-        toShow.forEach(r => r.classList.remove('d-none'));
-
-        hidden = rows.filter(r => r.classList.contains('d-none'));
-        if (hidden.length > 0) {
-          btn.textContent = `عرض المزيد (${hidden.length}+)`;
-        } else {
-          btn.textContent = 'إخفاء';
-          btn.classList.add('expanded');
-        }
-      } else {
-        rows.forEach(r => r.classList.add('d-none'));
-        const first = rows.slice(0, limit);
-        first.forEach(r => r.classList.remove('d-none'));
-
-        const rem = rows.length - limit;
-        btn.classList.remove('expanded');
-        btn.textContent = rem > 0 ? `عرض المزيد (${rem}+)` : 'عرض المزيد';
+      hidden = rows.filter(r=>r.classList.contains('d-none'));
+      if(hidden.length>0)
+        btn.textContent = `عرض المزيد (${hidden.length}+)`;
+      else{
+        btn.textContent='إخفاء';
+        btn.classList.add('expanded');
       }
-    });
+    } else {
+      rows.forEach(r=>r.classList.add('d-none'));
+      const first = rows.slice(0,limit);
+      first.forEach(r=>r.classList.remove('d-none'));
+
+      const rem = rows.length - limit;
+      btn.classList.remove('expanded');
+      btn.textContent = rem>0 ? `عرض المزيد (${rem}+)` : 'عرض المزيد';
+    }
   });
+});
 </script>
+
 {% endblock %}
