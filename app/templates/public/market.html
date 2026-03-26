@@ -4,7 +4,20 @@
 
 {% block content %}
 <h2 class="my-4 text-center">سوق السندات المتاحة</h2>
+<div class="alert alert-warning text-center shadow-sm mb-4">
 
+<strong>مروج جديد؟</strong>
+
+تعرف أولاً على طريقة العمل وكيف تحصل على العملاء
+قبل البدء في السندات.
+
+<br><br>
+
+<a href="{{ url_for('public.promoter_guide') }}" class="btn btn-primary btn-sm">
+طريقة عمل المروج
+</a>
+
+</div>
 {% if vouchers %}
   <div class="bg-success text-white py-2 mb-3">
     <marquee behavior="scroll" direction="left" scrollamount="5">
